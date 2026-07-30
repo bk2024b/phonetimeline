@@ -1,0 +1,33 @@
+export type Brand = {
+  id: string;
+  slug: string;
+  name: string;
+  founded_year: number | null;
+  logo_url: string | null;
+  created_at: string;
+};
+
+export type Phone = {
+  id: string;
+  brand_id: string;
+  slug: string;
+  name: string;
+  release_year: number;
+  release_date: string | null;
+  is_milestone: boolean;
+  milestone_note: string | null;
+  screen_size: number | null;
+  screen_type: string | null;
+  refresh_rate: number | null;
+  processor: string | null;
+  ram_gb: number | null;
+  storage_gb: number | null;
+  battery_mah: number | null;
+  main_camera_mp: number | null;
+  weight_g: number | null;
+  price_launch: number | null;
+  extra_specs: Record<string, string>;
+  created_at: string;
+};
+
+export type PhoneWithBrand = Phone & { brands: Pick<Brand, "id" | "name" | "slug"> };
