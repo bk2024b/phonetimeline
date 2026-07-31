@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Brand, Phone } from "@/lib/types";
+import type { Brand, Phone, PhoneWithBrand } from "@/lib/types";
 
 export async function getBrandBySlug(slug: string): Promise<Brand | null> {
   const supabase = await createClient();
@@ -19,4 +19,14 @@ export async function getPhonesByBrandId(brandId: string): Promise<Phone[]> {
     .eq("brand_id", brandId)
     .order("release_year", { ascending: true })) as { data: Phone[] | null };
   return data ?? [];
+}
+
+export async function getPhoneBySlug(slug: string): Promise<PhoneWithBrand | null> {
+  const supabase = await createClient();
+  const { data } = (await supabase
+    .from("phones")
+    .select("*, brands(id, name, slug)")
+    .eq("slug", slug)
+    .single()) as { data: PhoneWithBrand | null };
+  return data;
 }
