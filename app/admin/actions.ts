@@ -125,9 +125,14 @@ function numOrNull(formData: FormData, key: string) {
 }
 
 function phonePayload(formData: FormData) {
+  const predecessorId = String(formData.get("predecessor_id") || "") || null;
+  const id = String(formData.get("id") || "") || null;
+
   return {
     brand_id: String(formData.get("brand_id")),
     range_id: String(formData.get("range_id") || "") || null,
+    // Un modèle ne peut pas être son propre prédécesseur.
+    predecessor_id: predecessorId && predecessorId !== id ? predecessorId : null,
     slug: String(formData.get("slug")),
     name: String(formData.get("name")),
     release_year: Number(formData.get("release_year")),

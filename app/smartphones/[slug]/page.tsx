@@ -75,6 +75,48 @@ export default async function PhoneDetailPage({
           </div>
         )}
 
+        {(phone.predecessor || phone.successor) && (
+          <div className="grid grid-cols-2 gap-3 mb-8">
+            {phone.predecessor ? (
+              <Link
+                href={`/smartphones/${phone.predecessor.slug}`}
+                className="bg-surface border border-line rounded p-4 hover:border-jade transition-colors"
+              >
+                <div className="font-mono text-[11px] text-inksoft uppercase mb-1">
+                  ← Prédécesseur
+                </div>
+                <div className="font-semibold text-sm">{phone.predecessor.name}</div>
+                <div className="font-mono text-xs text-inksoft">
+                  {phone.predecessor.release_year}
+                </div>
+              </Link>
+            ) : (
+              <div className="border border-dashed border-line rounded p-4 text-inksoft text-sm">
+                Premier de sa lignée
+              </div>
+            )}
+
+            {phone.successor ? (
+              <Link
+                href={`/smartphones/${phone.successor.slug}`}
+                className="bg-surface border border-line rounded p-4 text-right hover:border-jade transition-colors"
+              >
+                <div className="font-mono text-[11px] text-inksoft uppercase mb-1">
+                  Successeur →
+                </div>
+                <div className="font-semibold text-sm">{phone.successor.name}</div>
+                <div className="font-mono text-xs text-inksoft">
+                  {phone.successor.release_year}
+                </div>
+              </Link>
+            ) : (
+              <div className="border border-dashed border-line rounded p-4 text-inksoft text-sm text-right">
+                Dernier de sa lignée (pour l&apos;instant)
+              </div>
+            )}
+          </div>
+        )}
+
         <h2 className="font-bold text-lg mb-3">Caractéristiques</h2>
         <div className="bg-surface border border-line rounded overflow-hidden mb-4">
           <SpecRow label="Date de sortie" value={phone.release_date} />

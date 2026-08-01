@@ -1,18 +1,24 @@
-import type { Brand, Phone, Range } from "@/lib/types";
+import type { Brand, Phone, PhoneRef, Range } from "@/lib/types";
 
 export default function PhoneForm({
   brands,
   ranges,
+  allPhones,
   phone,
   action
 }: {
   brands: Brand[];
   ranges: Range[];
+  allPhones: PhoneRef[];
   phone?: Phone;
   action: (formData: FormData) => void;
 }) {
+  const candidates = allPhones
+    .filter((p) => p.id !== phone?.id)
+    .sort((a, b) => a.release_year - b.release_year);
   return (
     <form action={action} className="space-y-8 max-w-2xl">
+      {phone?.id && <input type="hidden" name="id" value={phone.id} />}
       <section className="bg-surface border border-line rounded p-6 space-y-3">
         <h2 className="font-semibold text-sm uppercase tracking-wide text-inksoft">
           Général
@@ -55,6 +61,23 @@ export default function PhoneForm({
                   </option>
                 );
               })}
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-medium block mb-1">
+              Ce modèle remplace... (optionnel)
+            </label>
+            <select
+              name="predecessor_id"
+              defaultValue={phone?.predecessor_id ?? ""}
+              className="w-full border border-line rounded px-3 py-2 text-sm bg-white"
+            >
+              <option value="">Aucun (premier de sa lignée)</option>
+              {candidates.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({p.release_year})
+                </option>
+              ))}
             </select>
           </div>
           <div>

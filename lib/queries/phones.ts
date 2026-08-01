@@ -35,8 +35,19 @@ export async function getPhoneBySlug(slug: string): Promise<PhoneWithBrand | nul
   const supabase = await createClient();
   const { data } = (await supabase
     .from("phones")
-    .select("*, brands(id, name, slug), phone_images(id, phone_id, url, alt, sort_order)")
+    .select(
+      "*, brands(id, name, slug), ranges(id, name, slug), phone_images(id, phone_id, url, alt, sort_order), predecessor:predecessor_id(id, name, slug, release_year)"
+    )
     .eq("slug", slug)
     .single()) as { data: PhoneWithBrand | null };
-  return data;
+
+  if (!data) return null;
+
+  const { data: successor } = (await supabase
+    .from("phones")
+    .select("id, name, slug, release_year")
+    .eq("predecessor_id", data.id)
+    .maybeSingle()) as { data: PhoneWithBrand["successor"] };
+
+  return { ...data, successor: successor ?? null };
 }

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { updatePhone } from "../../../actions";
 import PhoneForm from "@/components/admin/PhoneForm";
 import PhoneImages from "@/components/admin/PhoneImages";
-import type { Brand, Phone, PhoneImage, Range } from "@/lib/types";
+import type { Brand, Phone, PhoneImage, PhoneRef, Range } from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export default async function EditPhonePage({
@@ -13,23 +13,32 @@ export default async function EditPhonePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: brands }, { data: ranges }, { data: phone }, { data: images }] =
-    await Promise.all([
-      supabase.from("brands").select("*").order("name") as unknown as Promise<{
-        data: Brand[] | null;
-      }>,
-      supabase.from("ranges").select("*").order("name") as unknown as Promise<{
-        data: Range[] | null;
-      }>,
-      supabase.from("phones").select("*").eq("id", id).single() as unknown as Promise<{
-        data: Phone | null;
-      }>,
-      supabase
-        .from("phone_images")
-        .select("*")
-        .eq("phone_id", id)
-        .order("sort_order") as unknown as Promise<{ data: PhoneImage[] | null }>
-    ]);
+  const [
+    { data: brands },
+    { data: ranges },
+    { data: allPhones },
+    { data: phone },
+    { data: images }
+  ] = await Promise.all([
+    supabase.from("brands").select("*").order("name") as unknown as Promise<{
+      data: Brand[] | null;
+    }>,
+    supabase.from("ranges").select("*").order("name") as unknown as Promise<{
+      data: Range[] | null;
+    }>,
+    supabase
+      .from("phones")
+      .select("id, name, slug, release_year")
+      .order("release_year") as unknown as Promise<{ data: PhoneRef[] | null }>,
+    supabase.from("phones").select("*").eq("id", id).single() as unknown as Promise<{
+      data: Phone | null;
+    }>,
+    supabase
+      .from("phone_images")
+      .select("*")
+      .eq("phone_id", id)
+      .order("sort_order") as unknown as Promise<{ data: PhoneImage[] | null }>
+  ]);
 
   if (!phone) notFound();
 
@@ -41,6 +50,7 @@ export default async function EditPhonePage({
       <PhoneForm
         brands={brands ?? []}
         ranges={ranges ?? []}
+        allPhones={allPhones ?? []}
         phone={phone}
         action={updatePhoneWithId}
       />

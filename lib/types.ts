@@ -19,6 +19,7 @@ export type Phone = {
   id: string;
   brand_id: string;
   range_id: string | null;
+  predecessor_id: string | null;
   slug: string;
   name: string;
   release_year: number;
@@ -47,8 +48,12 @@ export type PhoneImage = {
   sort_order: number;
 };
 
+export type PhoneRef = Pick<Phone, "id" | "name" | "slug" | "release_year">;
+
 export type PhoneWithBrand = Phone & {
   brands: Pick<Brand, "id" | "name" | "slug">;
   ranges?: Pick<Range, "id" | "name" | "slug"> | null;
   phone_images?: PhoneImage[];
+  predecessor?: PhoneRef | null;
+  successor?: PhoneRef | null;
 };
