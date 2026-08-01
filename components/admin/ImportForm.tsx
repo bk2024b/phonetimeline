@@ -19,7 +19,10 @@ function SubmitButton() {
 }
 
 export default function ImportForm() {
-  const [state, formAction] = useFormState(importPhonesFromCSV, initialState);
+  const [state, formAction] = useFormState(
+    async (_state: ImportResult, formData: FormData) => importPhonesFromCSV(formData),
+    initialState
+  );
 
   return (
     <div className="space-y-6 max-w-2xl">
