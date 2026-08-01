@@ -40,6 +40,16 @@ export type Phone = {
   created_at: string;
 };
 
+export type PhoneChangeType = "added" | "removed" | "unchanged";
+
+export type PhoneChange = {
+  id: string;
+  phone_id: string;
+  type: PhoneChangeType;
+  description: string;
+  sort_order: number;
+};
+
 export type PhoneImage = {
   id: string;
   phone_id: string;
@@ -56,4 +66,5 @@ export type PhoneWithBrand = Phone & {
   phone_images?: PhoneImage[];
   predecessor?: PhoneRef | null;
   successor?: PhoneRef | null;
+  phone_changes?: PhoneChange[];
 };

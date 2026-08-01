@@ -117,6 +117,64 @@ export default async function PhoneDetailPage({
           </div>
         )}
 
+        {phone.phone_changes && phone.phone_changes.length > 0 && (
+          <div className="mb-10">
+            <h2 className="font-bold text-lg mb-3">
+              Ce qui change depuis {phone.predecessor?.name ?? "le modèle précédent"}
+            </h2>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <div className="font-mono text-xs text-jade uppercase mb-2">
+                  ✓ Ajouté
+                </div>
+                <ul className="space-y-1.5">
+                  {phone.phone_changes
+                    .filter((c) => c.type === "added")
+                    .map((c) => (
+                      <li
+                        key={c.id}
+                        className="text-sm bg-jade/10 rounded px-3 py-2"
+                      >
+                        {c.description}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div>
+                <div className="font-mono text-xs text-red-600 uppercase mb-2">
+                  ✗ Supprimé
+                </div>
+                <ul className="space-y-1.5">
+                  {phone.phone_changes
+                    .filter((c) => c.type === "removed")
+                    .map((c) => (
+                      <li
+                        key={c.id}
+                        className="text-sm bg-red-50 rounded px-3 py-2"
+                      >
+                        {c.description}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div>
+                <div className="font-mono text-xs text-inksoft uppercase mb-2">
+                  = Inchangé
+                </div>
+                <ul className="space-y-1.5">
+                  {phone.phone_changes
+                    .filter((c) => c.type === "unchanged")
+                    .map((c) => (
+                      <li key={c.id} className="text-sm bg-bg rounded px-3 py-2">
+                        {c.description}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
         <h2 className="font-bold text-lg mb-3">Caractéristiques</h2>
         <div className="bg-surface border border-line rounded overflow-hidden mb-4">
           <SpecRow label="Date de sortie" value={phone.release_date} />

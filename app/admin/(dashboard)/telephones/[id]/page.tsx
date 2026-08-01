@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { updatePhone } from "../../../actions";
 import PhoneForm from "@/components/admin/PhoneForm";
 import PhoneImages from "@/components/admin/PhoneImages";
-import type { Brand, Phone, PhoneImage, PhoneRef, Range } from "@/lib/types";
+import PhoneChanges from "@/components/admin/PhoneChanges";
+import type { Brand, Phone, PhoneChange, PhoneImage, PhoneRef, Range } from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export default async function EditPhonePage({
@@ -18,7 +19,8 @@ export default async function EditPhonePage({
     { data: ranges },
     { data: allPhones },
     { data: phone },
-    { data: images }
+    { data: images },
+    { data: changes }
   ] = await Promise.all([
     supabase.from("brands").select("*").order("name") as unknown as Promise<{
       data: Brand[] | null;
@@ -37,7 +39,12 @@ export default async function EditPhonePage({
       .from("phone_images")
       .select("*")
       .eq("phone_id", id)
-      .order("sort_order") as unknown as Promise<{ data: PhoneImage[] | null }>
+      .order("sort_order") as unknown as Promise<{ data: PhoneImage[] | null }>,
+    supabase
+      .from("phone_changes")
+      .select("*")
+      .eq("phone_id", id)
+      .order("created_at") as unknown as Promise<{ data: PhoneChange[] | null }>
   ]);
 
   if (!phone) notFound();
@@ -55,6 +62,7 @@ export default async function EditPhonePage({
         action={updatePhoneWithId}
       />
       <PhoneImages phoneId={phone.id} images={images ?? []} />
+      <PhoneChanges phoneId={phone.id} changes={changes ?? []} />
     </main>
   );
 }

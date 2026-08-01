@@ -221,3 +221,25 @@ export async function deletePhoneImage(
 
   revalidatePath(`/admin/telephones/${phoneId}`);
 }
+
+// ---------- PHONE CHANGES ----------
+
+export async function createPhoneChange(phoneId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("phone_changes").insert({
+    phone_id: phoneId,
+    type: String(formData.get("type")),
+    description: String(formData.get("description"))
+  });
+
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/telephones/${phoneId}`);
+}
+
+export async function deletePhoneChange(id: string, phoneId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("phone_changes").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/admin/telephones/${phoneId}`);
+}
