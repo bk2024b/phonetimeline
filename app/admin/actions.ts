@@ -75,6 +75,48 @@ export async function deleteBrand(id: string) {
   revalidatePath("/admin/marques");
 }
 
+// ---------- RANGES ----------
+
+export async function createRange(formData: FormData) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("ranges").insert({
+    brand_id: String(formData.get("brand_id")),
+    slug: String(formData.get("slug")),
+    name: String(formData.get("name"))
+  });
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/gammes");
+  redirect("/admin/gammes");
+}
+
+export async function updateRange(id: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("ranges")
+    .update({
+      brand_id: String(formData.get("brand_id")),
+      slug: String(formData.get("slug")),
+      name: String(formData.get("name"))
+    })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/gammes");
+  redirect("/admin/gammes");
+}
+
+export async function deleteRange(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("ranges").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/gammes");
+}
+
 // ---------- PHONES ----------
 
 function numOrNull(formData: FormData, key: string) {
@@ -85,6 +127,7 @@ function numOrNull(formData: FormData, key: string) {
 function phonePayload(formData: FormData) {
   return {
     brand_id: String(formData.get("brand_id")),
+    range_id: String(formData.get("range_id") || "") || null,
     slug: String(formData.get("slug")),
     name: String(formData.get("name")),
     release_year: Number(formData.get("release_year")),

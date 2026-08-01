@@ -1,6 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBrandBySlug, getPhonesByBrandId } from "@/lib/queries/phones";
+import type { PhoneWithBrand } from "@/lib/types";
+
+function groupByRange(phones: PhoneWithBrand[]): Record<string, PhoneWithBrand[]> {
+  const groups: Record<string, PhoneWithBrand[]> = {};
+  for (const phone of phones) {
+    const key = phone.ranges?.name ?? "Autres modèles";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(phone);
+  }
+  return groups;
+}
 
 export default async function BrandTimelinePage({
   params
@@ -68,53 +79,60 @@ export default async function BrandTimelinePage({
             .
           </p>
         ) : (
-          <ol className="relative border-l-2 border-dashed border-line pl-8 space-y-8">
-            {phones.map((phone) => (
-              <li key={phone.id} className="relative">
-                <span className="absolute -left-[calc(2rem+5px)] top-1.5 w-3 h-3 rounded-full bg-jade ring-4 ring-bg" />
-                <div className="font-mono text-sm font-bold text-ink mb-1.5">
-                  {phone.release_year}
-                </div>
-                <Link
-                  href={`/smartphones/${phone.slug}`}
-                  className={`block bg-surface border rounded p-5 hover:border-jade transition-colors ${
-                    phone.is_milestone ? "border-jade border-[1.5px]" : "border-line"
-                  }`}
-                >
-                  <div className="font-semibold text-base mb-1">
-                    {phone.name}
-                    {phone.is_milestone && (
-                      <span className="ml-2 font-mono text-[10px] text-amber align-middle">
-                        ★ modèle marquant
-                      </span>
-                    )}
-                  </div>
-                  {phone.milestone_note && (
-                    <div className="font-mono text-xs text-jade mb-2">
-                      {phone.milestone_note}
+          Object.entries(groupByRange(phones)).map(([rangeName, rangePhones]) => (
+            <div key={rangeName} className="mb-14 last:mb-0">
+              <h2 className="text-lg font-bold mb-6 pb-2 border-b border-line">
+                {rangeName}
+              </h2>
+              <ol className="relative border-l-2 border-dashed border-line pl-8 space-y-8">
+                {rangePhones.map((phone) => (
+                  <li key={phone.id} className="relative">
+                    <span className="absolute -left-[calc(2rem+5px)] top-1.5 w-3 h-3 rounded-full bg-jade ring-4 ring-bg" />
+                    <div className="font-mono text-sm font-bold text-ink mb-1.5">
+                      {phone.release_year}
                     </div>
-                  )}
-                  <div className="flex flex-wrap gap-1.5">
-                    {phone.screen_size && (
-                      <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
-                        {phone.screen_size}&quot; {phone.screen_type ?? ""}
-                      </span>
-                    )}
-                    {phone.ram_gb && (
-                      <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
-                        {phone.ram_gb} Go RAM
-                      </span>
-                    )}
-                    {phone.battery_mah && (
-                      <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
-                        {phone.battery_mah} mAh
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ol>
+                    <Link
+                      href={`/smartphones/${phone.slug}`}
+                      className={`block bg-surface border rounded p-5 hover:border-jade transition-colors ${
+                        phone.is_milestone ? "border-jade border-[1.5px]" : "border-line"
+                      }`}
+                    >
+                      <div className="font-semibold text-base mb-1">
+                        {phone.name}
+                        {phone.is_milestone && (
+                          <span className="ml-2 font-mono text-[10px] text-amber align-middle">
+                            ★ modèle marquant
+                          </span>
+                        )}
+                      </div>
+                      {phone.milestone_note && (
+                        <div className="font-mono text-xs text-jade mb-2">
+                          {phone.milestone_note}
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-1.5">
+                        {phone.screen_size && (
+                          <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
+                            {phone.screen_size}&quot; {phone.screen_type ?? ""}
+                          </span>
+                        )}
+                        {phone.ram_gb && (
+                          <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
+                            {phone.ram_gb} Go RAM
+                          </span>
+                        )}
+                        {phone.battery_mah && (
+                          <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
+                            {phone.battery_mah} mAh
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))
         )}
       </main>
 

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Brand, Phone, PhoneWithBrand } from "@/lib/types";
+import type { Brand, PhoneWithBrand, Range } from "@/lib/types";
 
 export async function getBrandBySlug(slug: string): Promise<Brand | null> {
   const supabase = await createClient();
@@ -11,13 +11,23 @@ export async function getBrandBySlug(slug: string): Promise<Brand | null> {
   return data;
 }
 
-export async function getPhonesByBrandId(brandId: string): Promise<Phone[]> {
+export async function getRangesByBrandId(brandId: string): Promise<Range[]> {
+  const supabase = await createClient();
+  const { data } = (await supabase
+    .from("ranges")
+    .select("*")
+    .eq("brand_id", brandId)
+    .order("name")) as { data: Range[] | null };
+  return data ?? [];
+}
+
+export async function getPhonesByBrandId(brandId: string): Promise<PhoneWithBrand[]> {
   const supabase = await createClient();
   const { data } = (await supabase
     .from("phones")
-    .select("*")
+    .select("*, brands(id, name, slug), ranges(id, name, slug)")
     .eq("brand_id", brandId)
-    .order("release_year", { ascending: true })) as { data: Phone[] | null };
+    .order("release_year", { ascending: true })) as { data: PhoneWithBrand[] | null };
   return data ?? [];
 }
 

@@ -7,9 +7,18 @@ export type Brand = {
   created_at: string;
 };
 
+export type Range = {
+  id: string;
+  brand_id: string;
+  slug: string;
+  name: string;
+  created_at: string;
+};
+
 export type Phone = {
   id: string;
   brand_id: string;
+  range_id: string | null;
   slug: string;
   name: string;
   release_year: number;
@@ -40,5 +49,6 @@ export type PhoneImage = {
 
 export type PhoneWithBrand = Phone & {
   brands: Pick<Brand, "id" | "name" | "slug">;
+  ranges?: Pick<Range, "id" | "name" | "slug"> | null;
   phone_images?: PhoneImage[];
 };
