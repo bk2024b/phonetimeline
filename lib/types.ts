@@ -15,6 +15,15 @@ export type Range = {
   created_at: string;
 };
 
+export type PhoneScoreCategory =
+  | "design"
+  | "ecran"
+  | "photo"
+  | "autonomie"
+  | "performances";
+
+export type PhoneScores = Partial<Record<PhoneScoreCategory, number>>;
+
 export type Phone = {
   id: string;
   brand_id: string;
@@ -36,6 +45,7 @@ export type Phone = {
   main_camera_mp: number | null;
   weight_g: number | null;
   price_launch: number | null;
+  scores: PhoneScores;
   extra_specs: Record<string, string>;
   created_at: string;
 };

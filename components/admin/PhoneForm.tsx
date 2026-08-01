@@ -267,6 +267,35 @@ export default function PhoneForm({
         </div>
       </section>
 
+      <section className="bg-surface border border-line rounded p-6 space-y-3">
+        <h2 className="font-semibold text-sm uppercase tracking-wide text-inksoft">
+          Score d&apos;évolution (1 à 5 par catégorie, optionnel)
+        </h2>
+        <div className="grid grid-cols-5 gap-3">
+          {(
+            [
+              ["design", "Design"],
+              ["ecran", "Écran"],
+              ["photo", "Photo"],
+              ["autonomie", "Autonomie"],
+              ["performances", "Performances"]
+            ] as const
+          ).map(([key, label]) => (
+            <div key={key}>
+              <label className="text-sm font-medium block mb-1">{label}</label>
+              <input
+                name={`score_${key}`}
+                type="number"
+                min={1}
+                max={5}
+                defaultValue={phone?.scores?.[key] ?? ""}
+                className="w-full border border-line rounded px-3 py-2 text-sm"
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
       <button
         type="submit"
         className="bg-jade text-white text-sm font-medium px-5 py-2.5 rounded"

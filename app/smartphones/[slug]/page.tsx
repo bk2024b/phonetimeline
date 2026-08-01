@@ -175,6 +175,45 @@ export default async function PhoneDetailPage({
           </div>
         )}
 
+        {Object.keys(phone.scores ?? {}).length > 0 && (
+          <div className="mb-10">
+            <h2 className="font-bold text-lg mb-3">Score d&apos;évolution</h2>
+            <div className="bg-surface border border-line rounded p-5">
+              <div className="space-y-2 mb-4">
+                {(
+                  [
+                    ["design", "Design"],
+                    ["ecran", "Écran"],
+                    ["photo", "Photo"],
+                    ["autonomie", "Autonomie"],
+                    ["performances", "Performances"]
+                  ] as const
+                ).map(([key, label]) =>
+                  phone.scores?.[key] ? (
+                    <div key={key} className="flex items-center justify-between text-sm">
+                      <span className="text-inksoft">{label}</span>
+                      <span className="text-amber font-mono">
+                        {"★".repeat(phone.scores[key] as number)}
+                        {"☆".repeat(5 - (phone.scores[key] as number))}
+                      </span>
+                    </div>
+                  ) : null
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t border-line font-semibold text-sm">
+                <span>Score global</span>
+                <span className="font-mono text-jade">
+                  {(
+                    Object.values(phone.scores ?? {}).reduce((a, b) => a + (b ?? 0), 0) /
+                    Object.values(phone.scores ?? {}).length
+                  ).toFixed(1)}{" "}
+                  / 5
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <h2 className="font-bold text-lg mb-3">Caractéristiques</h2>
         <div className="bg-surface border border-line rounded overflow-hidden mb-4">
           <SpecRow label="Date de sortie" value={phone.release_date} />

@@ -124,6 +124,19 @@ function numOrNull(formData: FormData, key: string) {
   return v && String(v).trim() !== "" ? Number(v) : null;
 }
 
+const SCORE_CATEGORIES = ["design", "ecran", "photo", "autonomie", "performances"] as const;
+
+function scoresPayload(formData: FormData) {
+  const scores: Record<string, number> = {};
+  for (const category of SCORE_CATEGORIES) {
+    const raw = formData.get(`score_${category}`);
+    if (raw && String(raw).trim() !== "") {
+      scores[category] = Number(raw);
+    }
+  }
+  return scores;
+}
+
 function phonePayload(formData: FormData) {
   const predecessorId = String(formData.get("predecessor_id") || "") || null;
   const id = String(formData.get("id") || "") || null;
@@ -133,6 +146,7 @@ function phonePayload(formData: FormData) {
     range_id: String(formData.get("range_id") || "") || null,
     // Un modèle ne peut pas être son propre prédécesseur.
     predecessor_id: predecessorId && predecessorId !== id ? predecessorId : null,
+    scores: scoresPayload(formData),
     slug: String(formData.get("slug")),
     name: String(formData.get("name")),
     release_year: Number(formData.get("release_year")),
