@@ -1,19 +1,24 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createPhone } from "../../../actions";
-import PhoneForm from "@/components/admin/PhoneForm";
-import type { Brand } from "@/lib/types";
 
 export default async function NewPhonePage() {
   const supabase = await createClient();
-  const { data: brands } = (await supabase
-    .from("brands")
-    .select("*")
-    .order("name")) as { data: Brand[] | null };
 
-  return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Ajouter un téléphone</h1>
-      <PhoneForm brands={brands ?? []} action={createPhone} />
-    </main>
-  );
+  const draftSlug = `brouillon-${crypto.randomUUID().slice(0, 8)}`;
+
+  const { data, error } = await supabase
+    .from("phones")
+    .insert({
+      slug: draftSlug,
+      name: "Nouveau téléphone",
+      release_year: new Date().getFullYear()
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "Impossible de créer le brouillon de téléphone");
+  }
+
+  redirect(`/admin/telephones/${data.id}`);
 }

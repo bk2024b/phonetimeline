@@ -104,14 +104,6 @@ function phonePayload(formData: FormData) {
   };
 }
 
-export async function createPhone(formData: FormData) {
-  const supabase = await createClient();
-  const { error } = await supabase.from("phones").insert(phonePayload(formData));
-  if (error) throw new Error(error.message);
-  revalidatePath("/admin/telephones");
-  redirect("/admin/telephones");
-}
-
 export async function updatePhone(id: string, formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase
