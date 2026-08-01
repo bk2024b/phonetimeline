@@ -1,0 +1,4 @@
+brand_slug,brand_name,range_slug,range_name,slug,name,release_year,release_date,is_milestone,milestone_note,screen_size,screen_type,refresh_rate,processor,ram_gb,storage_gb,battery_mah,main_camera_mp,weight_g,price_launch
+apple,Apple,iphone,iPhone,iphone-14-pro,iPhone 14 Pro,2022,2022-09-16,false,,6.1,OLED,120,A16 Bionic,6,128,3200,48,206,1099
+apple,Apple,iphone,iPhone,iphone-15-pro,iPhone 15 Pro,2023,2023-09-22,true,Passage a l'USB-C fin du Lightning,6.1,OLED,120,A17 Pro,8,128,3274,48,187,1229
+samsung,Samsung,galaxy-s,Galaxy S,galaxy-s24-ultra,Galaxy S24 Ultra,2024,2024-01-24,false,,6.8,AMOLED,120,Snapdragon 8 Gen 3,12,256,5000,200,232,1419

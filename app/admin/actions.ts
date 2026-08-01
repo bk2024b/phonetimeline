@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { parseCSV } from "@/lib/csv";
 
 // ---------- AUTH ----------
 
@@ -115,6 +116,158 @@ export async function deleteRange(id: string) {
   const { error } = await supabase.from("ranges").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/admin/gammes");
+}
+
+// ---------- IMPORT EN MASSE (CSV) ----------
+
+export type ImportResult = {
+  total: number;
+  created: number;
+  updated: number;
+  errors: { line: number; message: string }[];
+};
+
+function toNumberOrNull(v: string | undefined) {
+  if (!v || v.trim() === "") return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? null : n;
+}
+
+export async function importPhonesFromCSV(formData: FormData): Promise<ImportResult> {
+  const file = formData.get("csv") as File | null;
+  const result: ImportResult = { total: 0, created: 0, updated: 0, errors: [] };
+  if (!file || file.size === 0) {
+    result.errors.push({ line: 0, message: "Aucun fichier fourni." });
+    return result;
+  }
+
+  const text = await file.text();
+  const rows = parseCSV(text);
+  result.total = rows.length;
+
+  const supabase = await createClient();
+
+  // Cache local des marques/gammes déjà résolues ou créées pendant cet import,
+  // pour éviter une requête par ligne.
+  const brandCache = new Map<string, string>(); // slug -> id
+  const rangeCache = new Map<string, string>(); // `${brandId}:${slug}` -> id
+
+  for (let i = 0; i < rows.length; i++) {
+    const line = i + 2; // +1 pour l'en-tête, +1 pour l'index 0-based
+    const row = rows[i];
+
+    try {
+      const brandSlug = row.brand_slug?.trim();
+      const brandName = row.brand_name?.trim() || brandSlug;
+      if (!brandSlug) throw new Error("brand_slug manquant");
+
+      let brandId = brandCache.get(brandSlug);
+      if (!brandId) {
+        const { data: existing } = await supabase
+          .from("brands")
+          .select("id")
+          .eq("slug", brandSlug)
+          .maybeSingle();
+        if (existing) {
+          brandId = existing.id;
+        } else {
+          const { data: created, error } = await supabase
+            .from("brands")
+            .insert({ slug: brandSlug, name: brandName })
+            .select("id")
+            .single();
+          if (error) throw new Error(`création marque : ${error.message}`);
+          brandId = created.id;
+        }
+        brandCache.set(brandSlug, brandId!);
+      }
+
+      let rangeId: string | null = null;
+      const rangeSlug = row.range_slug?.trim();
+      if (rangeSlug) {
+        const rangeName = row.range_name?.trim() || rangeSlug;
+        const cacheKey = `${brandId}:${rangeSlug}`;
+        rangeId = rangeCache.get(cacheKey) ?? null;
+        if (!rangeId) {
+          const { data: existing } = await supabase
+            .from("ranges")
+            .select("id")
+            .eq("brand_id", brandId)
+            .eq("slug", rangeSlug)
+            .maybeSingle();
+          if (existing) {
+            rangeId = existing.id;
+          } else {
+            const { data: created, error } = await supabase
+              .from("ranges")
+              .insert({ brand_id: brandId, slug: rangeSlug, name: rangeName })
+              .select("id")
+              .single();
+            if (error) throw new Error(`création gamme : ${error.message}`);
+            rangeId = created.id;
+          }
+          rangeCache.set(cacheKey, rangeId!);
+        }
+      }
+
+      if (!row.slug) throw new Error("slug manquant");
+      if (!row.name) throw new Error("name manquant");
+      if (!row.release_year) throw new Error("release_year manquant");
+
+      const payload = {
+        brand_id: brandId,
+        range_id: rangeId,
+        slug: row.slug.trim(),
+        name: row.name.trim(),
+        release_year: Number(row.release_year),
+        release_date: row.release_date?.trim() || null,
+        is_milestone: ["true", "1", "oui", "vrai"].includes(
+          (row.is_milestone ?? "").trim().toLowerCase()
+        ),
+        milestone_note: row.milestone_note?.trim() || null,
+        screen_size: toNumberOrNull(row.screen_size),
+        screen_type: row.screen_type?.trim() || null,
+        refresh_rate: toNumberOrNull(row.refresh_rate),
+        processor: row.processor?.trim() || null,
+        ram_gb: toNumberOrNull(row.ram_gb),
+        storage_gb: toNumberOrNull(row.storage_gb),
+        battery_mah: toNumberOrNull(row.battery_mah),
+        main_camera_mp: toNumberOrNull(row.main_camera_mp),
+        weight_g: toNumberOrNull(row.weight_g),
+        price_launch: toNumberOrNull(row.price_launch)
+      };
+
+      const { data: existingPhone } = await supabase
+        .from("phones")
+        .select("id")
+        .eq("slug", payload.slug)
+        .maybeSingle();
+
+      if (existingPhone) {
+        const { error } = await supabase
+          .from("phones")
+          .update(payload)
+          .eq("id", existingPhone.id);
+        if (error) throw new Error(error.message);
+        result.updated++;
+      } else {
+        const { error } = await supabase.from("phones").insert(payload);
+        if (error) throw new Error(error.message);
+        result.created++;
+      }
+    } catch (err) {
+      result.errors.push({
+        line,
+        message: err instanceof Error ? err.message : "Erreur inconnue"
+      });
+    }
+  }
+
+  revalidatePath("/admin/telephones");
+  revalidatePath("/admin/marques");
+  revalidatePath("/admin/gammes");
+
+  return result;
 }
 
 // ---------- PHONES ----------

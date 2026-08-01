@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { logout } from "../actions";
+import { logout } from "./actions";
 
 export default function AdminLayout({
   children
@@ -37,6 +37,12 @@ export default function AdminLayout({
             className="block px-3 py-2 rounded hover:bg-white/10"
           >
             Téléphones
+          </Link>
+          <Link
+            href="/admin/telephones/import"
+            className="block px-3 py-2 rounded hover:bg-white/10 text-white/60"
+          >
+            Importer (CSV)
           </Link>
         </nav>
         <form action={logout} className="p-3 border-t border-white/10">
