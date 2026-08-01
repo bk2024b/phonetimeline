@@ -2,12 +2,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBrandBySlug } from "@/lib/queries/phones";
 import { getRangeBySlug, getPhonesByRangeId } from "@/lib/queries/ranges";
+import EvolutionChart from "@/components/public/EvolutionChart";
 
 const CHANGE_STYLE = {
   added: { icon: "✓", color: "text-jade" },
   removed: { icon: "✗", color: "text-red-600" },
   unchanged: { icon: "=", color: "text-inksoft" }
 } as const;
+
+function buildPoints(
+  phones: Awaited<ReturnType<typeof getPhonesByRangeId>>,
+  key: "battery_mah" | "weight_g" | "price_launch"
+) {
+  return phones
+    .filter((p) => p[key] !== null && p[key] !== undefined)
+    .map((p) => ({ year: p.release_year, name: p.name, value: p[key] as number }));
+}
 
 export default async function RangeEvolutionPage({
   params
@@ -55,6 +65,29 @@ export default async function RangeEvolutionPage({
       </section>
 
       <main className="max-w-3xl mx-auto px-6 py-12">
+        {phones.length >= 2 && (
+          <div className="mb-14">
+            <h2 className="text-lg font-bold mb-5">Graphiques d&apos;évolution</h2>
+            <div className="grid gap-4">
+              <EvolutionChart
+                title="Batterie"
+                unit="mAh"
+                points={buildPoints(phones, "battery_mah")}
+              />
+              <EvolutionChart
+                title="Poids"
+                unit="g"
+                points={buildPoints(phones, "weight_g")}
+              />
+              <EvolutionChart
+                title="Prix au lancement"
+                unit="€"
+                points={buildPoints(phones, "price_launch")}
+              />
+            </div>
+          </div>
+        )}
+
         {phones.length === 0 ? (
           <p className="text-inksoft">
             Aucun modèle dans cette gamme pour le moment.
