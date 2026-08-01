@@ -129,3 +129,55 @@ export async function deletePhone(id: string) {
   if (error) throw new Error(error.message);
   revalidatePath("/admin/telephones");
 }
+
+// ---------- PHONE IMAGES ----------
+
+export async function uploadPhoneImage(phoneId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const file = formData.get("image") as File | null;
+  if (!file || file.size === 0) return;
+
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `${phoneId}/${crypto.randomUUID()}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("phone-images")
+    .upload(path, file);
+
+  if (uploadError) throw new Error(uploadError.message);
+
+  const {
+    data: { publicUrl }
+  } = supabase.storage.from("phone-images").getPublicUrl(path);
+
+  const { error: insertError } = await supabase.from("phone_images").insert({
+    phone_id: phoneId,
+    url: publicUrl,
+    alt: String(formData.get("alt") || "") || null
+  });
+
+  if (insertError) throw new Error(insertError.message);
+
+  revalidatePath(`/admin/telephones/${phoneId}`);
+}
+
+export async function deletePhoneImage(
+  id: string,
+  url: string,
+  phoneId: string
+) {
+  const supabase = await createClient();
+
+  const marker = "/phone-images/";
+  const idx = url.indexOf(marker);
+  if (idx !== -1) {
+    const path = url.slice(idx + marker.length);
+    await supabase.storage.from("phone-images").remove([path]);
+  }
+
+  const { error } = await supabase.from("phone_images").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/telephones/${phoneId}`);
+}

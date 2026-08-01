@@ -25,7 +25,7 @@ export async function getPhoneBySlug(slug: string): Promise<PhoneWithBrand | nul
   const supabase = await createClient();
   const { data } = (await supabase
     .from("phones")
-    .select("*, brands(id, name, slug)")
+    .select("*, brands(id, name, slug), phone_images(id, phone_id, url, alt, sort_order)")
     .eq("slug", slug)
     .single()) as { data: PhoneWithBrand | null };
   return data;

@@ -39,6 +39,15 @@ export default async function PhoneDetailPage({
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-12">
+        {phone.phone_images && phone.phone_images.length > 0 && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={phone.phone_images[0].url}
+            alt={phone.phone_images[0].alt ?? phone.name}
+            className="w-full max-w-sm rounded border border-line mb-8"
+          />
+        )}
+
         <div className="font-mono text-xs text-jade uppercase tracking-wide mb-2">
           {phone.brands.name}
         </div>

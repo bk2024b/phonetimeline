@@ -30,4 +30,15 @@ export type Phone = {
   created_at: string;
 };
 
-export type PhoneWithBrand = Phone & { brands: Pick<Brand, "id" | "name" | "slug"> };
+export type PhoneImage = {
+  id: string;
+  phone_id: string;
+  url: string;
+  alt: string | null;
+  sort_order: number;
+};
+
+export type PhoneWithBrand = Phone & {
+  brands: Pick<Brand, "id" | "name" | "slug">;
+  phone_images?: PhoneImage[];
+};

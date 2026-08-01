@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { updatePhone } from "../../../actions";
 import PhoneForm from "@/components/admin/PhoneForm";
-import type { Brand, Phone } from "@/lib/types";
+import PhoneImages from "@/components/admin/PhoneImages";
+import type { Brand, Phone, PhoneImage } from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export default async function EditPhonePage({
@@ -12,13 +13,18 @@ export default async function EditPhonePage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: brands }, { data: phone }] = await Promise.all([
+  const [{ data: brands }, { data: phone }, { data: images }] = await Promise.all([
     supabase.from("brands").select("*").order("name") as unknown as Promise<{
       data: Brand[] | null;
     }>,
     supabase.from("phones").select("*").eq("id", id).single() as unknown as Promise<{
       data: Phone | null;
-    }>
+    }>,
+    supabase
+      .from("phone_images")
+      .select("*")
+      .eq("phone_id", id)
+      .order("sort_order") as unknown as Promise<{ data: PhoneImage[] | null }>
   ]);
 
   if (!phone) notFound();
@@ -26,9 +32,10 @@ export default async function EditPhonePage({
   const updatePhoneWithId = updatePhone.bind(null, id);
 
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Modifier {phone.name}</h1>
+    <main className="p-8 space-y-8">
+      <h1 className="text-2xl font-bold">Modifier {phone.name}</h1>
       <PhoneForm brands={brands ?? []} phone={phone} action={updatePhoneWithId} />
+      <PhoneImages phoneId={phone.id} images={images ?? []} />
     </main>
   );
 }
