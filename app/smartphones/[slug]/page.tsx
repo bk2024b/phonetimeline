@@ -1,37 +1,37 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBrandBySlug, getPhonesByBrandId } from "@/lib/queries/phones";
-import type { PhoneWithBrand } from "@/lib/types";
+import { getPhoneBySlug, getAllPhonesLite } from "@/lib/queries/phones";
+import { getPhonesByRangeId } from "@/lib/queries/ranges";
+import CompareFromYourPhone from "@/components/public/CompareFromYourPhone";
+import PhoneDNA from "@/components/public/PhoneDNA";
 
-type RangeGroup = { slug: string | null; name: string; phones: PhoneWithBrand[] };
-
-function groupByRange(phones: PhoneWithBrand[]): RangeGroup[] {
-  const groups: Record<string, RangeGroup> = {};
-  for (const phone of phones) {
-    const key = phone.ranges?.slug ?? "__none__";
-    if (!groups[key]) {
-      groups[key] = {
-        slug: phone.ranges?.slug ?? null,
-        name: phone.ranges?.name ?? "Autres modèles",
-        phones: []
-      };
-    }
-    groups[key].phones.push(phone);
-  }
-  return Object.values(groups);
+function SpecRow({ label, value }: { label: string; value: string | number | null | undefined }) {
+  if (value === null || value === undefined || value === "") return null;
+  return (
+    <div className="grid grid-cols-[180px_1fr] text-sm border-t border-line first:border-t-0">
+      <div className="px-4 py-3 font-mono text-xs text-inksoft">{label}</div>
+      <div className="px-4 py-3 border-l border-line font-medium">{value}</div>
+    </div>
+  );
 }
 
-export default async function BrandTimelinePage({
+export default async function PhoneDetailPage({
   params
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const brand = await getBrandBySlug(slug);
+  const phone = await getPhoneBySlug(slug);
 
-  if (!brand) notFound();
+  if (!phone) notFound();
 
-  const phones = await getPhonesByBrandId(brand.id);
+  const [allPhones, rangePhones] = await Promise.all([
+    getAllPhonesLite(),
+    phone.range_id ? getPhonesByRangeId(phone.range_id) : Promise.resolve([])
+  ]);
+
+  const otherPhones = allPhones.filter((p) => p.id !== phone.id);
+  const phoneForDNA = { ...phone, phone_changes: phone.phone_changes ?? [] };
 
   return (
     <>
@@ -40,115 +40,232 @@ export default async function BrandTimelinePage({
           <Link href="/" className="font-bold tracking-tight">
             PhoneTimeline
           </Link>
-          <Link href="/" className="text-sm text-white/60 hover:text-white">
-            ← Toutes les marques
+          <Link
+            href={`/marques/${phone.brands.slug}`}
+            className="text-sm text-white/60 hover:text-white"
+          >
+            ← Tous les {phone.brands.name}
           </Link>
         </div>
       </header>
 
-      <section className="bg-dark text-white py-14">
-        <div className="max-w-5xl mx-auto px-6">
-          <p className="font-mono text-xs uppercase tracking-widest text-signal mb-4">
-            Historique de marque
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight mb-3">
-            Tous les {brand.name}
-          </h1>
-          <div className="flex gap-8 mt-6">
-            <div>
-              <div className="font-mono text-xl font-bold text-signal">
-                {phones.length}
-              </div>
-              <div className="font-mono text-[11px] uppercase text-white/50">
-                Modèles
-              </div>
-            </div>
-            {phones.length > 0 && (
-              <div>
-                <div className="font-mono text-xl font-bold text-signal">
-                  {phones[0].release_year} — {phones[phones.length - 1].release_year}
+      <main className="max-w-5xl mx-auto px-6 py-12">
+        {phone.phone_images && phone.phone_images.length > 0 && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={phone.phone_images[0].url}
+            alt={phone.phone_images[0].alt ?? phone.name}
+            className="w-full max-w-sm rounded border border-line mb-8"
+          />
+        )}
+
+        <div className="font-mono text-xs text-jade uppercase tracking-wide mb-2">
+          {phone.brands.name}
+        </div>
+        <h1 className="text-3xl font-bold tracking-tight mb-4">{phone.name}</h1>
+
+        <div className="flex flex-wrap gap-2 mb-8">
+          <span className="font-mono text-xs border border-line rounded px-2.5 py-1 text-inksoft">
+            Sorti en {phone.release_year}
+          </span>
+          {phone.is_milestone && (
+            <span className="font-mono text-xs bg-amber/20 text-amber-700 rounded px-2.5 py-1">
+              ★ Modèle marquant
+            </span>
+          )}
+          {phone.price_launch && (
+            <span className="font-mono text-xs border border-line rounded px-2.5 py-1 text-inksoft">
+              {phone.price_launch} € au lancement
+            </span>
+          )}
+        </div>
+
+        {phone.milestone_note && (
+          <div className="bg-jade/10 border border-jade/30 text-jade text-sm rounded p-4 mb-8">
+            {phone.milestone_note}
+          </div>
+        )}
+
+        {(phone.predecessor || phone.successor) && (
+          <div className="grid grid-cols-2 gap-3 mb-8">
+            {phone.predecessor ? (
+              <Link
+                href={`/smartphones/${phone.predecessor.slug}`}
+                className="bg-surface border border-line rounded p-4 hover:border-jade transition-colors"
+              >
+                <div className="font-mono text-[11px] text-inksoft uppercase mb-1">
+                  ← Prédécesseur
                 </div>
-                <div className="font-mono text-[11px] uppercase text-white/50">
-                  Période
+                <div className="font-semibold text-sm">{phone.predecessor.name}</div>
+                <div className="font-mono text-xs text-inksoft">
+                  {phone.predecessor.release_year}
                 </div>
+              </Link>
+            ) : (
+              <div className="border border-dashed border-line rounded p-4 text-inksoft text-sm">
+                Premier de sa lignée
+              </div>
+            )}
+
+            {phone.successor ? (
+              <Link
+                href={`/smartphones/${phone.successor.slug}`}
+                className="bg-surface border border-line rounded p-4 text-right hover:border-jade transition-colors"
+              >
+                <div className="font-mono text-[11px] text-inksoft uppercase mb-1">
+                  Successeur →
+                </div>
+                <div className="font-semibold text-sm">{phone.successor.name}</div>
+                <div className="font-mono text-xs text-inksoft">
+                  {phone.successor.release_year}
+                </div>
+              </Link>
+            ) : (
+              <div className="border border-dashed border-line rounded p-4 text-inksoft text-sm text-right">
+                Dernier de sa lignée (pour l&apos;instant)
               </div>
             )}
           </div>
-        </div>
-      </section>
+        )}
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        {phones.length === 0 ? (
-          <p className="text-inksoft">
-            Aucun téléphone {brand.name} pour le moment.{" "}
-            <Link href="/admin/telephones/nouveau" className="text-jade underline">
-              Ajoutes-en un depuis l&apos;admin
-            </Link>
-            .
-          </p>
-        ) : (
-          groupByRange(phones).map((group) => (
-            <div key={group.slug ?? "none"} className="mb-14 last:mb-0">
-              <div className="flex items-center justify-between mb-6 pb-2 border-b border-line">
-                <h2 className="text-lg font-bold">{group.name}</h2>
-                {group.slug && group.phones.length > 1 && (
-                  <Link
-                    href={`/marques/${brand.slug}/${group.slug}`}
-                    className="font-mono text-xs text-jade whitespace-nowrap"
-                  >
-                    Voir l&apos;évolution complète →
-                  </Link>
+        {phone.phone_changes && phone.phone_changes.length > 0 && (
+          <div className="mb-10">
+            <h2 className="font-bold text-lg mb-3">
+              Ce qui change depuis {phone.predecessor?.name ?? "le modèle précédent"}
+            </h2>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <div className="font-mono text-xs text-jade uppercase mb-2">
+                  ✓ Ajouté
+                </div>
+                <ul className="space-y-1.5">
+                  {phone.phone_changes
+                    .filter((c) => c.type === "added")
+                    .map((c) => (
+                      <li
+                        key={c.id}
+                        className="text-sm bg-jade/10 rounded px-3 py-2"
+                      >
+                        {c.description}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div>
+                <div className="font-mono text-xs text-red-600 uppercase mb-2">
+                  ✗ Supprimé
+                </div>
+                <ul className="space-y-1.5">
+                  {phone.phone_changes
+                    .filter((c) => c.type === "removed")
+                    .map((c) => (
+                      <li
+                        key={c.id}
+                        className="text-sm bg-red-50 rounded px-3 py-2"
+                      >
+                        {c.description}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div>
+                <div className="font-mono text-xs text-inksoft uppercase mb-2">
+                  = Inchangé
+                </div>
+                <ul className="space-y-1.5">
+                  {phone.phone_changes
+                    .filter((c) => c.type === "unchanged")
+                    .map((c) => (
+                      <li key={c.id} className="text-sm bg-bg rounded px-3 py-2">
+                        {c.description}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {Object.keys(phone.scores ?? {}).length > 0 && (
+          <div className="mb-10">
+            <h2 className="font-bold text-lg mb-3">Score d&apos;évolution</h2>
+            <div className="bg-surface border border-line rounded p-5">
+              <div className="space-y-2 mb-4">
+                {(
+                  [
+                    ["design", "Design"],
+                    ["ecran", "Écran"],
+                    ["photo", "Photo"],
+                    ["autonomie", "Autonomie"],
+                    ["performances", "Performances"]
+                  ] as const
+                ).map(([key, label]) =>
+                  phone.scores?.[key] ? (
+                    <div key={key} className="flex items-center justify-between text-sm">
+                      <span className="text-inksoft">{label}</span>
+                      <span className="text-amber font-mono">
+                        {"★".repeat(phone.scores[key] as number)}
+                        {"☆".repeat(5 - (phone.scores[key] as number))}
+                      </span>
+                    </div>
+                  ) : null
                 )}
               </div>
-              <ol className="relative border-l-2 border-dashed border-line pl-8 space-y-8">
-                {group.phones.map((phone) => (
-                  <li key={phone.id} className="relative">
-                    <span className="absolute -left-[calc(2rem+5px)] top-1.5 w-3 h-3 rounded-full bg-jade ring-4 ring-bg" />
-                    <div className="font-mono text-sm font-bold text-ink mb-1.5">
-                      {phone.release_year}
-                    </div>
-                    <Link
-                      href={`/smartphones/${phone.slug}`}
-                      className={`block bg-surface border rounded p-5 hover:border-jade transition-colors ${
-                        phone.is_milestone ? "border-jade border-[1.5px]" : "border-line"
-                      }`}
-                    >
-                      <div className="font-semibold text-base mb-1">
-                        {phone.name}
-                        {phone.is_milestone && (
-                          <span className="ml-2 font-mono text-[10px] text-amber align-middle">
-                            ★ modèle marquant
-                          </span>
-                        )}
-                      </div>
-                      {phone.milestone_note && (
-                        <div className="font-mono text-xs text-jade mb-2">
-                          {phone.milestone_note}
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-1.5">
-                        {phone.screen_size && (
-                          <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
-                            {phone.screen_size}&quot; {phone.screen_type ?? ""}
-                          </span>
-                        )}
-                        {phone.ram_gb && (
-                          <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
-                            {phone.ram_gb} Go RAM
-                          </span>
-                        )}
-                        {phone.battery_mah && (
-                          <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
-                            {phone.battery_mah} mAh
-                          </span>
-                        )}
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ol>
+              <div className="flex items-center justify-between pt-3 border-t border-line font-semibold text-sm">
+                <span>Score global</span>
+                <span className="font-mono text-jade">
+                  {(
+                    Object.values(phone.scores ?? {}).reduce((a, b) => a + (b ?? 0), 0) /
+                    Object.values(phone.scores ?? {}).length
+                  ).toFixed(1)}{" "}
+                  / 5
+                </span>
+              </div>
             </div>
-          ))
+          </div>
+        )}
+
+        <h2 className="font-bold text-lg mb-3">Caractéristiques</h2>
+        <div className="bg-surface border border-line rounded overflow-hidden mb-4">
+          <SpecRow label="Date de sortie" value={phone.release_date} />
+          <SpecRow
+            label="Écran"
+            value={
+              phone.screen_size
+                ? `${phone.screen_size}" ${phone.screen_type ?? ""}`.trim()
+                : phone.screen_type
+            }
+          />
+          <SpecRow
+            label="Taux de rafraîchissement"
+            value={phone.refresh_rate ? `${phone.refresh_rate} Hz` : null}
+          />
+          <SpecRow label="Processeur" value={phone.processor} />
+          <SpecRow label="RAM" value={phone.ram_gb ? `${phone.ram_gb} Go` : null} />
+          <SpecRow
+            label="Stockage"
+            value={phone.storage_gb ? `${phone.storage_gb} Go` : null}
+          />
+          <SpecRow
+            label="Batterie"
+            value={phone.battery_mah ? `${phone.battery_mah} mAh` : null}
+          />
+          <SpecRow
+            label="Caméra principale"
+            value={phone.main_camera_mp ? `${phone.main_camera_mp} MP` : null}
+          />
+          <SpecRow label="Poids" value={phone.weight_g ? `${phone.weight_g} g` : null} />
+        </div>
+
+        {Object.keys(phone.extra_specs ?? {}).length > 0 && (
+          <>
+            <h2 className="font-bold text-lg mb-3 mt-8">Autres caractéristiques</h2>
+            <div className="bg-surface border border-line rounded overflow-hidden">
+              {Object.entries(phone.extra_specs).map(([key, value]) => (
+                <SpecRow key={key} label={key} value={value} />
+              ))}
+            </div>
+          </>
         )}
       </main>
 

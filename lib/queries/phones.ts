@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Brand, PhoneWithBrand, Range } from "@/lib/types";
+import type { Brand, Phone, PhoneWithBrand, Range } from "@/lib/types";
 
 export async function getBrandBySlug(slug: string): Promise<Brand | null> {
   const supabase = await createClient();
@@ -28,6 +28,30 @@ export async function getPhonesByBrandId(brandId: string): Promise<PhoneWithBran
     .select("*, brands(id, name, slug), ranges(id, name, slug)")
     .eq("brand_id", brandId)
     .order("release_year", { ascending: true })) as { data: PhoneWithBrand[] | null };
+  return data ?? [];
+}
+
+export type PhoneLite = Pick<
+  Phone,
+  | "id"
+  | "name"
+  | "slug"
+  | "battery_mah"
+  | "ram_gb"
+  | "storage_gb"
+  | "main_camera_mp"
+  | "weight_g"
+  | "price_launch"
+>;
+
+export async function getAllPhonesLite(): Promise<PhoneLite[]> {
+  const supabase = await createClient();
+  const { data } = (await supabase
+    .from("phones")
+    .select(
+      "id, name, slug, battery_mah, ram_gb, storage_gb, main_camera_mp, weight_g, price_launch"
+    )
+    .order("name")) as { data: PhoneLite[] | null };
   return data ?? [];
 }
 
