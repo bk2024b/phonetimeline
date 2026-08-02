@@ -62,19 +62,19 @@ export default function PhoneDNA({
   if (rows.length === 0) return null;
 
   return (
-    <div className="mb-10">
-      <h2 className="font-bold text-lg mb-1">ADN du smartphone</h2>
-      <p className="text-sm text-inksoft mb-4">
+    <section className="mb-10">
+      <h2 className="font-display font-semibold text-lg mb-1">ADN du smartphone</h2>
+      <p className="text-sm text-muted mb-4">
         Suivi depuis {first.name} ({first.release_year}), premier modèle de la gamme.
       </p>
-      <div className="bg-surface border border-line rounded overflow-hidden">
+      <div className="bg-card border border-hairline rounded-xl overflow-hidden">
         {rows.map((row) => (
           <div
             key={row.key}
-            className="grid grid-cols-[160px_1fr] text-sm border-t border-line first:border-t-0"
+            className="grid grid-cols-[160px_1fr] text-sm border-t border-hairline first:border-t-0"
           >
-            <div className="px-4 py-3 font-mono text-xs text-inksoft">{row.label}</div>
-            <div className="px-4 py-3 border-l border-line flex flex-wrap items-center gap-3">
+            <div className="px-4 py-3 font-mono text-xs text-muted">{row.label}</div>
+            <div className="px-4 py-3 border-l border-hairline flex flex-wrap items-center gap-3">
               <span className="font-semibold">
                 {row.current} {row.unit}
               </span>
@@ -82,8 +82,8 @@ export default function PhoneDNA({
                 <span
                   className={`font-mono text-xs ${
                     (row.higherIsBetter ? row.vsPredecessor > 0 : row.vsPredecessor < 0)
-                      ? "text-jade"
-                      : "text-red-600"
+                      ? "text-signal"
+                      : "text-red-400"
                   }`}
                 >
                   {row.vsPredecessor > 0 ? "+" : ""}
@@ -91,13 +91,13 @@ export default function PhoneDNA({
                 </span>
               )}
               {row.vsFirst !== null && (
-                <span className="font-mono text-xs text-inksoft">
+                <span className="font-mono text-xs text-muted">
                   {row.vsFirst > 0 ? "+" : ""}
                   {row.vsFirst.toFixed(0)}% depuis {first.name}
                 </span>
               )}
               {row.isRecord && (
-                <span className="font-mono text-[10px] text-amber">
+                <span className="font-mono text-[10px] text-amber-400">
                   ★ record de la gamme
                 </span>
               )}
@@ -105,6 +105,6 @@ export default function PhoneDNA({
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

@@ -25,14 +25,14 @@ export default function CompareFromYourPhone({
   const selected = others.find((p) => p.id === selectedId);
 
   return (
-    <div className="bg-surface border border-line rounded p-5 mb-8">
+    <section className="bg-card border border-hairline rounded-xl p-5 mb-10">
       <label className="text-sm font-medium block mb-2">
         Vous possédez déjà un téléphone ? Comparez-le à celui-ci.
       </label>
       <select
         value={selectedId}
         onChange={(e) => setSelectedId(e.target.value)}
-        className="w-full border border-line rounded px-3 py-2 text-sm bg-white mb-3"
+        className="w-full border border-hairline rounded-lg px-3 py-2 text-sm bg-panel mb-3"
       >
         <option value="">Choisir mon téléphone actuel...</option>
         {others.map((p) => (
@@ -44,7 +44,7 @@ export default function CompareFromYourPhone({
 
       {selected && (
         <div>
-          <div className="font-mono text-xs text-inksoft uppercase mb-2">
+          <div className="font-mono text-xs text-muted uppercase mb-2">
             Depuis votre {selected.name}
           </div>
           <div className="flex flex-wrap gap-2">
@@ -70,10 +70,10 @@ export default function CompareFromYourPhone({
               return (
                 <span
                   key={key}
-                  className={`font-mono text-xs rounded px-2.5 py-1 ${
+                  className={`font-mono text-xs rounded-full px-2.5 py-1 ${
                     isImprovement
-                      ? "bg-jade/10 text-jade"
-                      : "bg-red-50 text-red-600"
+                      ? "bg-signal/10 text-signal"
+                      : "bg-red-500/10 text-red-400"
                   }`}
                 >
                   {sign}
@@ -84,6 +84,6 @@ export default function CompareFromYourPhone({
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
