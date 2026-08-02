@@ -2,15 +2,24 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBrandBySlug, getPhonesByBrandId } from "@/lib/queries/phones";
 import type { PhoneWithBrand } from "@/lib/types";
+import Logo from "@/components/public/Logo";
 
-function groupByRange(phones: PhoneWithBrand[]): Record<string, PhoneWithBrand[]> {
-  const groups: Record<string, PhoneWithBrand[]> = {};
+type RangeGroup = { slug: string | null; name: string; phones: PhoneWithBrand[] };
+
+function groupByRange(phones: PhoneWithBrand[]): RangeGroup[] {
+  const groups: Record<string, RangeGroup> = {};
   for (const phone of phones) {
-    const key = phone.ranges?.name ?? "Autres modèles";
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(phone);
+    const key = phone.ranges?.slug ?? "__none__";
+    if (!groups[key]) {
+      groups[key] = {
+        slug: phone.ranges?.slug ?? null,
+        name: phone.ranges?.name ?? "Autres modèles",
+        phones: []
+      };
+    }
+    groups[key].phones.push(phone);
   }
-  return groups;
+  return Object.values(groups);
 }
 
 export default async function BrandTimelinePage({
@@ -30,7 +39,7 @@ export default async function BrandTimelinePage({
       <header className="bg-dark text-white sticky top-0 z-50 border-b border-white/10">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="font-bold tracking-tight">
-            PhoneTimeline
+            <Logo light />
           </Link>
           <Link href="/" className="text-sm text-white/60 hover:text-white">
             ← Toutes les marques
@@ -79,13 +88,21 @@ export default async function BrandTimelinePage({
             .
           </p>
         ) : (
-          Object.entries(groupByRange(phones)).map(([rangeName, rangePhones]) => (
-            <div key={rangeName} className="mb-14 last:mb-0">
-              <h2 className="text-lg font-bold mb-6 pb-2 border-b border-line">
-                {rangeName}
-              </h2>
+          groupByRange(phones).map((group) => (
+            <div key={group.slug ?? "none"} className="mb-14 last:mb-0">
+              <div className="flex items-center justify-between mb-6 pb-2 border-b border-line">
+                <h2 className="text-lg font-bold">{group.name}</h2>
+                {group.slug && group.phones.length > 1 && (
+                  <Link
+                    href={`/marques/${brand.slug}/${group.slug}`}
+                    className="font-mono text-xs text-jade whitespace-nowrap"
+                  >
+                    Voir l&apos;évolution complète →
+                  </Link>
+                )}
+              </div>
               <ol className="relative border-l-2 border-dashed border-line pl-8 space-y-8">
-                {rangePhones.map((phone) => (
+                {group.phones.map((phone) => (
                   <li key={phone.id} className="relative">
                     <span className="absolute -left-[calc(2rem+5px)] top-1.5 w-3 h-3 rounded-full bg-jade ring-4 ring-bg" />
                     <div className="font-mono text-sm font-bold text-ink mb-1.5">

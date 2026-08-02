@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getBrandsWithStats } from "@/lib/queries/brands";
+import Logo from "@/components/public/Logo";
 
 export default async function HomePage() {
   const brands = await getBrandsWithStats();
@@ -9,7 +10,7 @@ export default async function HomePage() {
       <header className="bg-dark text-white sticky top-0 z-50 border-b border-white/10">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="font-bold tracking-tight">
-            PhoneTimeline
+            <Logo light />
           </Link>
         </div>
       </header>

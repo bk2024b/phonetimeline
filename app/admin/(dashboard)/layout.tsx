@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { logout } from "../actions";
+import Image from "next/image";
+import { logout } from "./actions";
 
 export default function AdminLayout({
   children
@@ -9,9 +10,18 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen flex bg-bg">
       <aside className="w-56 bg-dark text-white flex flex-col shrink-0">
-        <div className="px-5 py-5 font-bold border-b border-white/10">
-          PhoneTimeline
-          <div className="text-xs font-normal text-white/50">Administration</div>
+        <div className="px-5 py-5 font-bold border-b border-white/10 flex items-center gap-2">
+          <Image
+            src="/logo-256.png"
+            alt="PhoneTimeline"
+            width={22}
+            height={22}
+            className="rounded-[5px]"
+          />
+          <div>
+            PhoneTimeline
+            <div className="text-xs font-normal text-white/50">Administration</div>
+          </div>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 text-sm">
           <Link

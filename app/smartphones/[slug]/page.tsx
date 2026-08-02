@@ -4,6 +4,7 @@ import { getPhoneBySlug, getAllPhonesLite } from "@/lib/queries/phones";
 import { getPhonesByRangeId } from "@/lib/queries/ranges";
 import CompareFromYourPhone from "@/components/public/CompareFromYourPhone";
 import PhoneDNA from "@/components/public/PhoneDNA";
+import Logo from "@/components/public/Logo";
 
 function SpecRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === "") return null;
@@ -38,7 +39,7 @@ export default async function PhoneDetailPage({
       <header className="bg-dark text-white sticky top-0 z-50 border-b border-white/10">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="font-bold tracking-tight">
-            PhoneTimeline
+            <Logo light />
           </Link>
           <Link
             href={`/marques/${phone.brands.slug}`}
