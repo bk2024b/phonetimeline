@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { logout } from "./actions";
+import { logout } from "../actions";
 
 export default function AdminLayout({
   children
