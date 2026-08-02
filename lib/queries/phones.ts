@@ -3,11 +3,16 @@ import type { Brand, Phone, PhoneWithBrand, Range } from "@/lib/types";
 
 export async function getBrandBySlug(slug: string): Promise<Brand | null> {
   const supabase = await createClient();
-  const { data } = (await supabase
+  const { data, error } = await supabase
     .from("brands")
     .select("*")
     .eq("slug", slug)
-    .single()) as { data: Brand | null };
+    .single();
+
+  if (error) {
+    console.error(`getBrandBySlug("${slug}") error:`, error.message);
+    return null;
+  }
   return data;
 }
 
