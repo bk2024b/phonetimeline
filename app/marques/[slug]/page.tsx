@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getBrandBySlug, getPhonesByBrandId } from "@/lib/queries/phones";
 import type { PhoneWithBrand } from "@/lib/types";
@@ -22,7 +23,7 @@ function groupByRange(phones: PhoneWithBrand[]): RangeGroup[] {
   return Object.values(groups);
 }
 
-export default async function BrandTimelinePage({
+export default async function BrandPage({
   params
 }: {
   params: Promise<{ slug: string }>;
@@ -33,56 +34,61 @@ export default async function BrandTimelinePage({
   if (!brand) notFound();
 
   const phones = await getPhonesByBrandId(brand.id);
+  const minYear = phones[0]?.release_year ?? null;
+  const maxYear = phones[phones.length - 1]?.release_year ?? null;
+  const avgPerYear =
+    minYear && maxYear
+      ? (phones.length / (maxYear - minYear + 1)).toFixed(1)
+      : null;
 
   return (
-    <>
-      <header className="bg-dark text-white sticky top-0 z-50 border-b border-white/10">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="font-bold tracking-tight">
+    <div className="bg-night text-white min-h-screen">
+      <header className="sticky top-0 z-50 bg-night/90 backdrop-blur border-b border-hairline">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/">
             <Logo light />
           </Link>
-          <Link href="/" className="text-sm text-white/60 hover:text-white">
+          <Link href="/" className="text-sm text-muted hover:text-white transition-colors">
             ← Toutes les marques
           </Link>
         </div>
       </header>
 
-      <section className="bg-dark text-white py-14">
-        <div className="max-w-5xl mx-auto px-6">
-          <p className="font-mono text-xs uppercase tracking-widest text-signal mb-4">
-            Historique de marque
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight mb-3">
-            Tous les {brand.name}
-          </h1>
-          <div className="flex gap-8 mt-6">
-            <div>
-              <div className="font-mono text-xl font-bold text-signal">
-                {phones.length}
-              </div>
-              <div className="font-mono text-[11px] uppercase text-white/50">
-                Modèles
-              </div>
+      <section className="max-w-6xl mx-auto px-6 pt-14 pb-10">
+        <p className="font-mono text-xs uppercase tracking-widest text-signal mb-4">
+          {minYear ? `Depuis ${minYear}` : "Historique de marque"}
+        </p>
+        <h1 className="font-display font-bold text-4xl md:text-5xl mb-8">{brand.name}</h1>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl">
+          <div className="bg-card border border-hairline rounded-lg px-4 py-3">
+            <div className="font-mono font-bold text-2xl">{phones.length}</div>
+            <div className="text-xs text-muted mt-1">Modèles</div>
+          </div>
+          <div className="bg-card border border-hairline rounded-lg px-4 py-3">
+            <div className="font-mono font-bold text-2xl">
+              {minYear && maxYear ? `${minYear}–${maxYear}` : "—"}
             </div>
-            {phones.length > 0 && (
-              <div>
-                <div className="font-mono text-xl font-bold text-signal">
-                  {phones[0].release_year} — {phones[phones.length - 1].release_year}
-                </div>
-                <div className="font-mono text-[11px] uppercase text-white/50">
-                  Période
-                </div>
-              </div>
-            )}
+            <div className="text-xs text-muted mt-1">Période</div>
+          </div>
+          <div className="bg-card border border-hairline rounded-lg px-4 py-3">
+            <div className="font-mono font-bold text-2xl">{avgPerYear ?? "—"}</div>
+            <div className="text-xs text-muted mt-1">Modèles / an</div>
+          </div>
+          <div className="bg-card border border-hairline rounded-lg px-4 py-3">
+            <div className="font-mono text-sm font-bold truncate">
+              {phones[phones.length - 1]?.name ?? "—"}
+            </div>
+            <div className="text-xs text-muted mt-1">Dernier modèle</div>
           </div>
         </div>
       </section>
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
+      <main className="max-w-6xl mx-auto px-6 py-10 border-t border-hairline">
         {phones.length === 0 ? (
-          <p className="text-inksoft">
+          <p className="text-muted text-sm">
             Aucun téléphone {brand.name} pour le moment.{" "}
-            <Link href="/admin/telephones/nouveau" className="text-jade underline">
+            <Link href="/admin/telephones/nouveau" className="text-signal underline">
               Ajoutes-en un depuis l&apos;admin
             </Link>
             .
@@ -90,72 +96,87 @@ export default async function BrandTimelinePage({
         ) : (
           groupByRange(phones).map((group) => (
             <div key={group.slug ?? "none"} className="mb-14 last:mb-0">
-              <div className="flex items-center justify-between mb-6 pb-2 border-b border-line">
-                <h2 className="text-lg font-bold">{group.name}</h2>
+              <div className="flex items-center justify-between mb-5 pb-3 border-b border-hairline">
+                <h2 className="font-display font-semibold text-lg">
+                  {group.name}
+                  <span className="font-mono text-xs text-muted ml-2">
+                    {group.phones.length}
+                  </span>
+                </h2>
                 {group.slug && group.phones.length > 1 && (
                   <Link
                     href={`/marques/${brand.slug}/${group.slug}`}
-                    className="font-mono text-xs text-jade whitespace-nowrap"
+                    className="font-mono text-xs text-signal whitespace-nowrap"
                   >
                     Voir l&apos;évolution complète →
                   </Link>
                 )}
               </div>
-              <ol className="relative border-l-2 border-dashed border-line pl-8 space-y-8">
-                {group.phones.map((phone) => (
-                  <li key={phone.id} className="relative">
-                    <span className="absolute -left-[calc(2rem+5px)] top-1.5 w-3 h-3 rounded-full bg-jade ring-4 ring-bg" />
-                    <div className="font-mono text-sm font-bold text-ink mb-1.5">
-                      {phone.release_year}
-                    </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {group.phones.map((phone) => {
+                  const cover = phone.phone_images?.[0];
+                  return (
                     <Link
+                      key={phone.id}
                       href={`/smartphones/${phone.slug}`}
-                      className={`block bg-surface border rounded p-5 hover:border-jade transition-colors ${
-                        phone.is_milestone ? "border-jade border-[1.5px]" : "border-line"
+                      className={`bg-card border rounded-xl overflow-hidden hover:border-signal/40 hover:scale-[1.02] transition-all ${
+                        phone.is_milestone ? "border-signal/50" : "border-hairline"
                       }`}
                     >
-                      <div className="font-semibold text-base mb-1">
-                        {phone.name}
-                        {phone.is_milestone && (
-                          <span className="ml-2 font-mono text-[10px] text-amber align-middle">
-                            ★ modèle marquant
-                          </span>
+                      <div className="aspect-square bg-panel flex items-center justify-center">
+                        {cover ? (
+                          <Image
+                            src={cover.url}
+                            alt={cover.alt ?? phone.name}
+                            width={200}
+                            height={200}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <span className="text-4xl opacity-30">📱</span>
                         )}
                       </div>
-                      {phone.milestone_note && (
-                        <div className="font-mono text-xs text-jade mb-2">
-                          {phone.milestone_note}
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-sm truncate">{phone.name}</span>
+                          {phone.is_milestone && (
+                            <span className="text-signal text-xs shrink-0">★</span>
+                          )}
                         </div>
-                      )}
-                      <div className="flex flex-wrap gap-1.5">
-                        {phone.screen_size && (
-                          <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
-                            {phone.screen_size}&quot; {phone.screen_type ?? ""}
-                          </span>
-                        )}
-                        {phone.ram_gb && (
-                          <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
-                            {phone.ram_gb} Go RAM
-                          </span>
-                        )}
-                        {phone.battery_mah && (
-                          <span className="font-mono text-[11px] bg-bg text-inksoft px-2 py-0.5 rounded">
-                            {phone.battery_mah} mAh
-                          </span>
-                        )}
+                        <div className="font-mono text-xs text-muted mb-3">
+                          {phone.release_year}
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {phone.screen_size && (
+                            <span className="font-mono text-[10px] bg-panel text-muted px-1.5 py-0.5 rounded">
+                              {phone.screen_size}&quot;
+                            </span>
+                          )}
+                          {phone.ram_gb && (
+                            <span className="font-mono text-[10px] bg-panel text-muted px-1.5 py-0.5 rounded">
+                              {phone.ram_gb} Go
+                            </span>
+                          )}
+                          {phone.battery_mah && (
+                            <span className="font-mono text-[10px] bg-panel text-muted px-1.5 py-0.5 rounded">
+                              {phone.battery_mah} mAh
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </Link>
-                  </li>
-                ))}
-              </ol>
+                  );
+                })}
+              </div>
             </div>
           ))
         )}
       </main>
 
-      <footer className="bg-dark text-white/50 text-xs py-8">
-        <div className="max-w-5xl mx-auto px-6">© 2026 PhoneTimeline</div>
+      <footer className="border-t border-hairline py-8">
+        <div className="max-w-6xl mx-auto px-6 text-xs text-muted">© 2026 PhoneTimeline</div>
       </footer>
-    </>
+    </div>
   );
 }
