@@ -1,6 +1,24 @@
 import type { Metadata } from "next";
-// @ts-ignore: Allow global CSS import without local type declarations
+import { Inter, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+const interTight = Inter_Tight({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["500", "600", "700"]
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-body",
+  weight: ["400", "500", "600"]
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500", "700"]
+});
 
 export const metadata: Metadata = {
   title: "PhoneTimeline",
@@ -20,8 +38,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
-      <body className="bg-bg text-ink">{children}</body>
+    <html
+      lang="fr"
+      className={`${interTight.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+    >
+      <body className="bg-bg text-ink font-body">{children}</body>
     </html>
   );
 }
