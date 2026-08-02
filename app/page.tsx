@@ -155,7 +155,7 @@ export default async function HomePage() {
                   </div>
                   <div className="text-sm font-medium truncate">{phone.name}</div>
                   <div className="font-mono text-xs text-muted">
-                    {phone.brands.name} · {phone.release_year}
+                    {phone.brands?.name} · {phone.release_year}
                   </div>
                 </Link>
               );
