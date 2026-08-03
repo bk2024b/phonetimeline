@@ -76,6 +76,55 @@ export async function deleteBrand(id: string) {
   revalidatePath("/admin/marques");
 }
 
+// ---------- BRAND LOGO ----------
+
+export async function uploadBrandLogo(brandId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const file = formData.get("logo") as File | null;
+  if (!file || file.size === 0) return;
+
+  const ext = file.name.split(".").pop() || "png";
+  // Chemin fixe (pas d'uuid) + upsert: un nouvel upload remplace l'ancien
+  // logo au lieu d'accumuler des fichiers orphelins dans le bucket.
+  const path = `${brandId}/logo.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("brand-logos")
+    .upload(path, file, { upsert: true });
+
+  if (uploadError) throw new Error(uploadError.message);
+
+  const {
+    data: { publicUrl }
+  } = supabase.storage.from("brand-logos").getPublicUrl(path);
+
+  // Un parametre anti-cache pour que le navigateur recharge bien la nouvelle
+  // image apres un remplacement (meme chemin de fichier -> meme URL sinon).
+  const cacheBustedUrl = `${publicUrl}?v=${Date.now()}`;
+
+  const { error: updateError } = await supabase
+    .from("brands")
+    .update({ logo_url: cacheBustedUrl })
+    .eq("id", brandId);
+
+  if (updateError) throw new Error(updateError.message);
+
+  revalidatePath("/admin/marques");
+  revalidatePath(`/admin/marques/${brandId}`);
+}
+
+export async function removeBrandLogo(brandId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("brands")
+    .update({ logo_url: null })
+    .eq("id", brandId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/marques");
+  revalidatePath(`/admin/marques/${brandId}`);
+}
+
 // ---------- RANGES ----------
 
 export async function createRange(formData: FormData) {

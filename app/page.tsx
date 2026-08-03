@@ -100,28 +100,42 @@ export default async function HomePage() {
       </section>
 
       <section id="marques" className="max-w-6xl mx-auto px-6 py-14 border-t border-hairline">
-        <h2 className="font-display font-semibold text-xl mb-6">Marques</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-display font-semibold text-xl">Marques populaires</h2>
+          <Link href="/marques" className="font-mono text-xs text-signal">
+            Voir toutes les marques →
+          </Link>
+        </div>
 
         {popularBrands.length === 0 ? (
           <p className="text-muted text-sm">Aucune marque pour le moment.</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
             {popularBrands.map((brand) => (
               <Link
                 key={brand.id}
                 href={`/marques/${brand.slug}`}
-                className="bg-card border border-hairline rounded-xl p-5 hover:border-signal/40 hover:scale-[1.02] transition-all"
+                className="flex flex-col items-center text-center group"
               >
-                <div className="font-display font-semibold text-lg mb-1">
-                  {brand.name}
+                <div className="w-16 h-16 rounded-2xl bg-card border border-hairline flex items-center justify-center mb-2 overflow-hidden group-hover:border-signal/40 transition-colors">
+                  {brand.logo_url ? (
+                    <Image
+                      src={brand.logo_url}
+                      alt={brand.name}
+                      width={64}
+                      height={64}
+                      className="object-contain w-10 h-10"
+                    />
+                  ) : (
+                    <span className="font-display font-bold text-lg text-muted">
+                      {brand.name.charAt(0)}
+                    </span>
+                  )}
                 </div>
-                <div className="font-mono text-xs text-muted mb-4">
-                  {brand.min_year ?? "—"}
-                  {brand.max_year ? ` → ${brand.max_year}` : ""}
-                </div>
-                <span className="font-mono text-xs text-signal bg-signal/10 px-2.5 py-1 rounded-full">
+                <div className="text-sm font-medium">{brand.name}</div>
+                <div className="font-mono text-[11px] text-muted">
                   {brand.phone_count} modèle{brand.phone_count > 1 ? "s" : ""}
-                </span>
+                </div>
               </Link>
             ))}
           </div>

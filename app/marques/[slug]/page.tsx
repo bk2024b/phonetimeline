@@ -74,6 +74,17 @@ export default async function BrandPage({
         <p className="font-mono text-xs uppercase tracking-widest text-signal mb-4">
           {minYear ? `Depuis ${minYear}` : "Marque"}
         </p>
+        {brand.logo_url && (
+          <div className="w-16 h-16 rounded-2xl bg-card border border-hairline flex items-center justify-center mb-4 overflow-hidden">
+            <Image
+              src={brand.logo_url}
+              alt={brand.name}
+              width={64}
+              height={64}
+              className="object-contain w-10 h-10"
+            />
+          </div>
+        )}
         <h1 className="font-display font-bold text-3xl md:text-5xl mb-8">{brand.name}</h1>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl">

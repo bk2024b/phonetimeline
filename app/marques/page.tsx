@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getBrandsWithStats } from "@/lib/queries/brands";
 import Logo from "@/components/public/Logo";
 
@@ -43,6 +44,21 @@ export default async function BrandsPage() {
                 href={`/marques/${brand.slug}`}
                 className="bg-card border border-hairline rounded-xl p-5 hover:border-signal/40 hover:scale-[1.02] transition-all"
               >
+                <div className="w-12 h-12 rounded-xl bg-panel flex items-center justify-center mb-3 overflow-hidden">
+                  {brand.logo_url ? (
+                    <Image
+                      src={brand.logo_url}
+                      alt={brand.name}
+                      width={48}
+                      height={48}
+                      className="object-contain w-8 h-8"
+                    />
+                  ) : (
+                    <span className="font-display font-bold text-muted">
+                      {brand.name.charAt(0)}
+                    </span>
+                  )}
+                </div>
                 <div className="font-display font-semibold text-lg mb-1">{brand.name}</div>
                 <div className="font-mono text-xs text-muted mb-4">
                   {brand.min_year ?? "—"}
