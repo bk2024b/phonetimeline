@@ -62,6 +62,22 @@ export async function getAllPhonesLite(): Promise<PhoneLite[]> {
   return data ?? [];
 }
 
+export async function getSimilarPhones(
+  rangeId: string,
+  excludePhoneId: string,
+  limit = 4
+): Promise<PhoneWithBrand[]> {
+  const supabase = await createClient();
+  const { data } = (await supabase
+    .from("phones")
+    .select("*, brands(id, name, slug), phone_images(id, phone_id, url, alt, sort_order)")
+    .eq("range_id", rangeId)
+    .neq("id", excludePhoneId)
+    .order("release_year", { ascending: false })
+    .limit(limit)) as { data: PhoneWithBrand[] | null };
+  return data ?? [];
+}
+
 export async function getPhoneBySlug(slug: string): Promise<PhoneWithBrand | null> {
   const supabase = await createClient();
   const { data } = (await supabase
