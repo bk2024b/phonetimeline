@@ -23,9 +23,9 @@ export default async function HomePage() {
             <Logo light />
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-muted">
-            <a href="#marques" className="hover:text-white transition-colors">
+            <Link href="/marques" className="hover:text-white transition-colors">
               Marques
-            </a>
+            </Link>
             <Link href="/comparer" className="hover:text-white transition-colors">
               Comparateur
             </Link>
