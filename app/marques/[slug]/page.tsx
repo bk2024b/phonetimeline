@@ -1,7 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getBrandBySlug, getRangesByBrandId, getPhonesByBrandId } from "@/lib/queries/phones";
 import Logo from "@/components/public/Logo";
+import BrandPhoneGrid from "@/components/public/BrandPhoneGrid";
 
 export default async function BrandPage({
   params
@@ -21,17 +23,26 @@ export default async function BrandPage({
   const years = phones.map((p) => p.release_year);
   const minYear = years.length ? Math.min(...years) : brand.founded_year;
   const maxYear = years.length ? Math.max(...years) : null;
+  const firstPhone = phones[0];
 
   const phonesByRange = new Map<string, typeof phones>();
-  const phonesWithoutRange: typeof phones = [];
   for (const phone of phones) {
     if (phone.range_id) {
       const list = phonesByRange.get(phone.range_id) ?? [];
       list.push(phone);
       phonesByRange.set(phone.range_id, list);
-    } else {
-      phonesWithoutRange.push(phone);
     }
+  }
+
+  // Un modele par annee pour l'apercu chronologique, jusqu'a 6.
+  const preview: typeof phones = [];
+  const seenYears = new Set<number>();
+  for (const phone of phones) {
+    if (!seenYears.has(phone.release_year)) {
+      seenYears.add(phone.release_year);
+      preview.push(phone);
+    }
+    if (preview.length >= 6) break;
   }
 
   return (
@@ -47,20 +58,90 @@ export default async function BrandPage({
         </div>
       </header>
 
-      <section className="max-w-5xl mx-auto px-6 pt-14 pb-8">
+      <nav className="max-w-5xl mx-auto px-6 pt-6 text-xs font-mono text-muted">
+        <Link href="/" className="hover:text-white transition-colors">
+          Accueil
+        </Link>
+        {" / "}
+        <Link href="/marques" className="hover:text-white transition-colors">
+          Marques
+        </Link>
+        {" / "}
+        <span className="text-white">{brand.name}</span>
+      </nav>
+
+      <section className="max-w-5xl mx-auto px-6 pt-6 pb-10">
         <p className="font-mono text-xs uppercase tracking-widest text-signal mb-4">
-          Marque
+          {minYear ? `Depuis ${minYear}` : "Marque"}
         </p>
-        <h1 className="font-display font-bold text-3xl md:text-4xl mb-3">{brand.name}</h1>
-        <p className="text-muted">
-          {phones.length} modèle{phones.length > 1 ? "s" : ""}
-          {minYear ? ` · ${minYear}${maxYear ? ` → ${maxYear}` : ""}` : ""}
-        </p>
+        <h1 className="font-display font-bold text-3xl md:text-5xl mb-8">{brand.name}</h1>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl">
+          <div className="bg-card border border-hairline rounded-lg px-4 py-3">
+            <div className="font-mono font-bold text-2xl">{phones.length}</div>
+            <div className="text-xs text-muted mt-1">Téléphones</div>
+          </div>
+          <div className="bg-card border border-hairline rounded-lg px-4 py-3">
+            <div className="font-mono font-bold text-2xl">{ranges.length}</div>
+            <div className="text-xs text-muted mt-1">Gammes</div>
+          </div>
+          <div className="bg-card border border-hairline rounded-lg px-4 py-3">
+            <div className="font-mono font-bold text-2xl">
+              {minYear && maxYear ? maxYear - minYear + 1 : "—"}
+            </div>
+            <div className="text-xs text-muted mt-1">Années</div>
+          </div>
+          <div className="bg-card border border-hairline rounded-lg px-4 py-3">
+            <div className="font-mono font-bold text-2xl">{minYear ?? "—"}</div>
+            <div className="text-xs text-muted mt-1">
+              1er modèle{firstPhone ? ` · ${firstPhone.name}` : ""}
+            </div>
+          </div>
+        </div>
       </section>
 
       <main className="max-w-5xl mx-auto px-6 pb-16">
+        {preview.length > 1 && (
+          <section className="mb-14">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-display font-semibold text-lg">Aperçu chronologique</h2>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {preview.map((phone) => {
+                const cover = phone.phone_images?.[0];
+                return (
+                  <Link
+                    key={phone.id}
+                    href={`/smartphones/${phone.slug}`}
+                    className="flex flex-col items-center gap-2 shrink-0 w-24 group"
+                  >
+                    <div className="w-20 h-20 rounded-full bg-card border border-hairline flex items-center justify-center overflow-hidden group-hover:border-signal/40 transition-colors">
+                      {cover ? (
+                        <Image
+                          src={cover.url}
+                          alt={cover.alt ?? phone.name}
+                          width={80}
+                          height={80}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <span className="text-2xl opacity-30">📱</span>
+                      )}
+                    </div>
+                    <span className="w-2 h-2 rounded-full bg-signal" />
+                    <div className="text-center">
+                      <div className="font-mono text-xs">{phone.release_year}</div>
+                      <div className="text-[11px] text-muted truncate w-24">{phone.name}</div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {ranges.length > 0 && (
-          <section className="mb-12">
+          <section className="mb-14">
             <h2 className="font-display font-semibold text-lg mb-4">Gammes</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {ranges.map((range) => {
@@ -83,30 +164,13 @@ export default async function BrandPage({
         )}
 
         <section>
-          <h2 className="font-display font-semibold text-lg mb-4">Tous les modèles</h2>
+          <h2 className="font-display font-semibold text-lg mb-4">
+            Tous les {brand.name}
+          </h2>
           {phones.length === 0 ? (
             <p className="text-muted text-sm">Aucun modèle pour le moment.</p>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[...phones].reverse().map((phone) => (
-                <Link
-                  key={phone.id}
-                  href={`/smartphones/${phone.slug}`}
-                  className="bg-card border border-hairline rounded-xl p-5 hover:border-signal/40 transition-colors"
-                >
-                  <div className="font-medium mb-1">{phone.name}</div>
-                  <div className="font-mono text-xs text-muted">
-                    {phone.ranges?.name ? `${phone.ranges.name} · ` : ""}
-                    {phone.release_year}
-                  </div>
-                  {phone.is_milestone && (
-                    <span className="font-mono text-xs text-signal mt-2 inline-block">
-                      ★ Modèle marquant
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </div>
+            <BrandPhoneGrid phones={phones} ranges={ranges} />
           )}
         </section>
       </main>

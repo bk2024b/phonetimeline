@@ -30,7 +30,9 @@ export async function getPhonesByBrandId(brandId: string): Promise<PhoneWithBran
   const supabase = await createClient();
   const { data } = (await supabase
     .from("phones")
-    .select("*, brands(id, name, slug), ranges(id, name, slug)")
+    .select(
+      "*, brands(id, name, slug), ranges(id, name, slug), phone_images(id, phone_id, url, alt, sort_order)"
+    )
     .eq("brand_id", brandId)
     .order("release_year", { ascending: true })) as { data: PhoneWithBrand[] | null };
   return data ?? [];
