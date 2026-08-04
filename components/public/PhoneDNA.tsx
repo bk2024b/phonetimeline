@@ -1,4 +1,4 @@
-import type { PhoneWithChanges } from "@/lib/queries/ranges";
+import type { PhoneWithChanges } from "@/lib/queries/model-lines";
 
 type MetricKey =
   | "battery_mah"
@@ -26,16 +26,16 @@ function pctDelta(from: number, to: number) {
 
 export default function PhoneDNA({
   phone,
-  rangePhones
+  linePhones
 }: {
   phone: PhoneWithChanges;
-  rangePhones: PhoneWithChanges[];
+  linePhones: PhoneWithChanges[];
 }) {
-  if (rangePhones.length < 2) return null;
+  if (linePhones.length < 2) return null;
 
-  const first = rangePhones[0];
+  const first = linePhones[0];
   const predecessor = phone.predecessor_id
-    ? rangePhones.find((p) => p.id === phone.predecessor_id)
+    ? linePhones.find((p) => p.id === phone.predecessor_id)
     : undefined;
 
   const rows = METRICS.map((metric) => {
@@ -50,7 +50,7 @@ export default function PhoneDNA({
         ? pctDelta(first[metric.key] as number, current)
         : null;
 
-    const values = rangePhones
+    const values = linePhones
       .map((p) => p[metric.key])
       .filter((v): v is number => v !== null && v !== undefined);
     const best = metric.higherIsBetter ? Math.max(...values) : Math.min(...values);
@@ -65,7 +65,7 @@ export default function PhoneDNA({
     <section className="mb-10">
       <h2 className="font-display font-semibold text-lg mb-1">ADN du smartphone</h2>
       <p className="text-sm text-muted mb-4">
-        Suivi depuis {first.name} ({first.release_year}), premier modèle de la gamme.
+        Suivi depuis {first.name} ({first.release_year}), premier modèle de la ligne.
       </p>
       <div className="bg-card border border-hairline rounded-xl overflow-hidden">
         {rows.map((row) => (
@@ -98,7 +98,7 @@ export default function PhoneDNA({
               )}
               {row.isRecord && (
                 <span className="font-mono text-[10px] text-amber-400">
-                  ★ record de la gamme
+                  ★ record de la ligne
                 </span>
               )}
             </div>

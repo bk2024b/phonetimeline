@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getPhoneBySlug, getAllPhonesLite, getSimilarPhones } from "@/lib/queries/phones";
-import { getPhonesByRangeId } from "@/lib/queries/ranges";
+import { getPhonesByModelLineId } from "@/lib/queries/model-lines";
 import CompareFromYourPhone from "@/components/public/CompareFromYourPhone";
 import PhoneDNA from "@/components/public/PhoneDNA";
 import PhoneTabs from "@/components/public/PhoneTabs";
@@ -39,9 +39,11 @@ export default async function PhoneDetailPage({
 
   if (!phone || !phone.brands) notFound();
 
-  const [allPhones, rangePhones, similarPhones] = await Promise.all([
+  const [allPhones, linePhones, similarPhones] = await Promise.all([
     getAllPhonesLite(),
-    phone.range_id ? getPhonesByRangeId(phone.range_id) : Promise.resolve([]),
+    phone.model_line_id
+      ? getPhonesByModelLineId(phone.model_line_id)
+      : Promise.resolve([]),
     phone.range_id ? getSimilarPhones(phone.range_id, phone.id) : Promise.resolve([])
   ]);
 
@@ -151,7 +153,7 @@ export default async function PhoneDetailPage({
         </section>
       )}
 
-      <PhoneDNA phone={phoneForDNA} rangePhones={rangePhones} />
+      <PhoneDNA phone={phoneForDNA} linePhones={linePhones} />
       <CompareFromYourPhone current={phone} others={otherPhones} />
     </div>
   );
