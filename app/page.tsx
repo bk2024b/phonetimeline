@@ -26,6 +26,9 @@ export default async function HomePage() {
             <Link href="/marques" className="hover:text-white transition-colors">
               Marques
             </Link>
+            <Link href="/timeline" className="hover:text-white transition-colors">
+              Timeline
+            </Link>
             <Link href="/comparer" className="hover:text-white transition-colors">
               Comparateur
             </Link>

@@ -14,9 +14,14 @@ export default async function BrandsPage() {
           <Link href="/">
             <Logo light />
           </Link>
-          <Link href="/" className="text-sm text-muted hover:text-white transition-colors">
-            ← Accueil
-          </Link>
+          <nav className="flex items-center gap-5 text-sm text-muted">
+            <Link href="/timeline" className="hover:text-white transition-colors">
+              Timeline
+            </Link>
+            <Link href="/" className="hover:text-white transition-colors">
+              ← Accueil
+            </Link>
+          </nav>
         </div>
       </header>
 
