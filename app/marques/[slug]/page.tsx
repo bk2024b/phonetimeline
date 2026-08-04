@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getBrandBySlug, getRangesByBrandId, getPhonesByBrandId } from "@/lib/queries/phones";
+import { getModelLinesByBrandId } from "@/lib/queries/model-lines";
 import Logo from "@/components/public/Logo";
 import BrandPhoneGrid from "@/components/public/BrandPhoneGrid";
 
@@ -15,8 +16,9 @@ export default async function BrandPage({
   const brand = await getBrandBySlug(slug);
   if (!brand) notFound();
 
-  const [ranges, phones] = await Promise.all([
+  const [ranges, modelLines, phones] = await Promise.all([
     getRangesByBrandId(brand.id),
+    getModelLinesByBrandId(brand.id),
     getPhonesByBrandId(brand.id)
   ]);
 
@@ -26,11 +28,17 @@ export default async function BrandPage({
   const firstPhone = phones[0];
 
   const phonesByRange = new Map<string, typeof phones>();
+  const phonesByLine = new Map<string, typeof phones>();
   for (const phone of phones) {
     if (phone.range_id) {
       const list = phonesByRange.get(phone.range_id) ?? [];
       list.push(phone);
       phonesByRange.set(phone.range_id, list);
+    }
+    if (phone.model_line_id) {
+      const list = phonesByLine.get(phone.model_line_id) ?? [];
+      list.push(phone);
+      phonesByLine.set(phone.model_line_id, list);
     }
   }
 
@@ -166,6 +174,32 @@ export default async function BrandPage({
                     <div className="font-display font-semibold mb-1">{range.name}</div>
                     <div className="font-mono text-xs text-muted">
                       {rangePhones.length} modèle{rangePhones.length > 1 ? "s" : ""}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {modelLines.length > 0 && (
+          <section className="mb-14">
+            <h2 className="font-display font-semibold text-lg mb-4">Lignes de modèle</h2>
+            <p className="text-sm text-muted mb-4">
+              Suis l&apos;évolution d&apos;un palier précis à travers les années.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {modelLines.map((line) => {
+                const linePhones = phonesByLine.get(line.id) ?? [];
+                return (
+                  <Link
+                    key={line.id}
+                    href={`/marques/${brand.slug}/ligne/${line.slug}`}
+                    className="bg-card border border-hairline rounded-xl p-5 hover:border-signal/40 transition-colors"
+                  >
+                    <div className="font-display font-semibold mb-1">{line.name}</div>
+                    <div className="font-mono text-xs text-muted">
+                      {linePhones.length} modèle{linePhones.length > 1 ? "s" : ""}
                     </div>
                   </Link>
                 );
