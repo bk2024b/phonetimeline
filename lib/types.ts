@@ -15,6 +15,17 @@ export type Range = {
   created_at: string;
 };
 
+// Ligne de modele : suit un palier de produit A TRAVERS LES ANNEES
+// (ex: "iPhone Pro" = 11 Pro -> ... -> 16 Pro), distinct de "Range" qui
+// regroupe les variants d'une meme generation (ex: "iPhone 13").
+export type ModelLine = {
+  id: string;
+  brand_id: string;
+  slug: string;
+  name: string;
+  created_at: string;
+};
+
 export type PhoneScoreCategory =
   | "design"
   | "ecran"
@@ -28,6 +39,7 @@ export type Phone = {
   id: string;
   brand_id: string;
   range_id: string | null;
+  model_line_id: string | null;
   predecessor_id: string | null;
   slug: string;
   name: string;
@@ -73,6 +85,7 @@ export type PhoneRef = Pick<Phone, "id" | "name" | "slug" | "release_year">;
 export type PhoneWithBrand = Phone & {
   brands: Pick<Brand, "id" | "name" | "slug">;
   ranges?: Pick<Range, "id" | "name" | "slug"> | null;
+  model_lines?: Pick<ModelLine, "id" | "name" | "slug"> | null;
   phone_images?: PhoneImage[];
   predecessor?: PhoneRef | null;
   successor?: PhoneRef | null;
