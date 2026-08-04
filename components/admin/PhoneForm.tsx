@@ -1,14 +1,16 @@
-import type { Brand, Phone, PhoneRef, Range } from "@/lib/types";
+import type { Brand, ModelLine, Phone, PhoneRef, Range } from "@/lib/types";
 
 export default function PhoneForm({
   brands,
   ranges,
+  modelLines,
   allPhones,
   phone,
   action
 }: {
   brands: Brand[];
   ranges: Range[];
+  modelLines: ModelLine[];
   allPhones: PhoneRef[];
   phone?: Phone;
   action: (formData: FormData) => void;
@@ -58,6 +60,26 @@ export default function PhoneForm({
                 return (
                   <option key={r.id} value={r.id}>
                     {brandName ? `${brandName} — ${r.name}` : r.name}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-medium block mb-1">
+              Ligne de modèle (optionnel)
+            </label>
+            <select
+              name="model_line_id"
+              defaultValue={phone?.model_line_id ?? ""}
+              className="w-full border border-line rounded px-3 py-2 text-sm bg-white"
+            >
+              <option value="">Aucune</option>
+              {modelLines.map((l) => {
+                const brandName = brands.find((b) => b.id === l.brand_id)?.name;
+                return (
+                  <option key={l.id} value={l.id}>
+                    {brandName ? `${brandName} — ${l.name}` : l.name}
                   </option>
                 );
               })}

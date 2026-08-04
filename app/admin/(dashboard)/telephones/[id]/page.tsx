@@ -3,7 +3,15 @@ import { updatePhone } from "../../../actions";
 import PhoneForm from "@/components/admin/PhoneForm";
 import PhoneImages from "@/components/admin/PhoneImages";
 import PhoneChanges from "@/components/admin/PhoneChanges";
-import type { Brand, Phone, PhoneChange, PhoneImage, PhoneRef, Range } from "@/lib/types";
+import type {
+  Brand,
+  ModelLine,
+  Phone,
+  PhoneChange,
+  PhoneImage,
+  PhoneRef,
+  Range
+} from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export default async function EditPhonePage({
@@ -17,6 +25,7 @@ export default async function EditPhonePage({
   const [
     { data: brands },
     { data: ranges },
+    { data: modelLines },
     { data: allPhones },
     { data: phone },
     { data: images },
@@ -27,6 +36,9 @@ export default async function EditPhonePage({
     }>,
     supabase.from("ranges").select("*").order("name") as unknown as Promise<{
       data: Range[] | null;
+    }>,
+    supabase.from("model_lines").select("*").order("name") as unknown as Promise<{
+      data: ModelLine[] | null;
     }>,
     supabase
       .from("phones")
@@ -57,6 +69,7 @@ export default async function EditPhonePage({
       <PhoneForm
         brands={brands ?? []}
         ranges={ranges ?? []}
+        modelLines={modelLines ?? []}
         allPhones={allPhones ?? []}
         phone={phone}
         action={updatePhoneWithId}

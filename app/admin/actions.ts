@@ -167,6 +167,48 @@ export async function deleteRange(id: string) {
   revalidatePath("/admin/gammes");
 }
 
+// ---------- MODEL LINES (paliers de produit a travers les annees) ----------
+
+export async function createModelLine(formData: FormData) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("model_lines").insert({
+    brand_id: String(formData.get("brand_id")),
+    slug: String(formData.get("slug")),
+    name: String(formData.get("name"))
+  });
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/lignes");
+  redirect("/admin/lignes");
+}
+
+export async function updateModelLine(id: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("model_lines")
+    .update({
+      brand_id: String(formData.get("brand_id")),
+      slug: String(formData.get("slug")),
+      name: String(formData.get("name"))
+    })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/lignes");
+  redirect("/admin/lignes");
+}
+
+export async function deleteModelLine(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("model_lines").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/lignes");
+}
+
 // ---------- IMPORT EN MASSE (CSV) ----------
 
 export type ImportResult = {
@@ -346,6 +388,7 @@ function phonePayload(formData: FormData) {
   return {
     brand_id: String(formData.get("brand_id")),
     range_id: String(formData.get("range_id") || "") || null,
+    model_line_id: String(formData.get("model_line_id") || "") || null,
     // Un modèle ne peut pas être son propre prédécesseur.
     predecessor_id: predecessorId && predecessorId !== id ? predecessorId : null,
     scores: scoresPayload(formData),

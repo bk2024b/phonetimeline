@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { logout } from "../actions";
+import { logout } from "./actions";
 
 export default function AdminLayout({
   children
@@ -41,6 +41,12 @@ export default function AdminLayout({
             className="block px-3 py-2 rounded hover:bg-white/10"
           >
             Gammes
+          </Link>
+          <Link
+            href="/admin/lignes"
+            className="block px-3 py-2 rounded hover:bg-white/10"
+          >
+            Lignes de modèle
           </Link>
           <Link
             href="/admin/telephones"
