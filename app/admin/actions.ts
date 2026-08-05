@@ -216,6 +216,7 @@ export type ImportResult = {
   created: number;
   updated: number;
   errors: { line: number; message: string }[];
+  warnings: { line: number; message: string }[];
 };
 
 function toNumberOrNull(v: string | undefined) {
@@ -226,7 +227,7 @@ function toNumberOrNull(v: string | undefined) {
 
 export async function importPhonesFromCSV(formData: FormData): Promise<ImportResult> {
   const file = formData.get("csv") as File | null;
-  const result: ImportResult = { total: 0, created: 0, updated: 0, errors: [] };
+  const result: ImportResult = { total: 0, created: 0, updated: 0, errors: [], warnings: [] };
   if (!file || file.size === 0) {
     result.errors.push({ line: 0, message: "Aucun fichier fourni." });
     return result;
@@ -238,10 +239,15 @@ export async function importPhonesFromCSV(formData: FormData): Promise<ImportRes
 
   const supabase = await createClient();
 
-  // Cache local des marques/gammes déjà résolues ou créées pendant cet import,
-  // pour éviter une requête par ligne.
+  // Cache local des marques/gammes/lignes déjà résolues ou créées pendant cet
+  // import, pour éviter une requête par ligne.
   const brandCache = new Map<string, string>(); // slug -> id
   const rangeCache = new Map<string, string>(); // `${brandId}:${slug}` -> id
+  const modelLineCache = new Map<string, string>(); // `${brandId}:${slug}` -> id
+  // slug de téléphone -> id, alimenté au fur et à mesure : permet de résoudre
+  // un predecessor_slug qui pointe vers un téléphone créé plus haut dans le
+  // même fichier, sans attendre un aller-retour DB.
+  const phoneSlugCache = new Map<string, string>();
 
   for (let i = 0; i < rows.length; i++) {
     const line = i + 2; // +1 pour l'en-tête, +1 pour l'index 0-based
@@ -301,14 +307,80 @@ export async function importPhonesFromCSV(formData: FormData): Promise<ImportRes
         }
       }
 
+      // --- Ligne de modèle (ex: "iPhone Pro") : même logique que la gamme,
+      // mais suit un palier à travers les années plutôt qu'une génération.
+      let modelLineId: string | null = null;
+      const modelLineSlug = row.model_line_slug?.trim();
+      if (modelLineSlug) {
+        const modelLineName = row.model_line_name?.trim() || modelLineSlug;
+        const cacheKey = `${brandId}:${modelLineSlug}`;
+        modelLineId = modelLineCache.get(cacheKey) ?? null;
+        if (!modelLineId) {
+          const { data: existing } = await supabase
+            .from("model_lines")
+            .select("id")
+            .eq("brand_id", brandId)
+            .eq("slug", modelLineSlug)
+            .maybeSingle();
+          if (existing) {
+            modelLineId = existing.id;
+          } else {
+            const { data: created, error } = await supabase
+              .from("model_lines")
+              .insert({ brand_id: brandId, slug: modelLineSlug, name: modelLineName })
+              .select("id")
+              .single();
+            if (error) throw new Error(`création ligne de modèle : ${error.message}`);
+            modelLineId = created.id;
+          }
+          modelLineCache.set(cacheKey, modelLineId!);
+        }
+      }
+
       if (!row.slug) throw new Error("slug manquant");
       if (!row.name) throw new Error("name manquant");
       if (!row.release_year) throw new Error("release_year manquant");
 
+      const phoneSlug = row.slug.trim();
+
+      // --- Modèle remplacé (predecessor) : résolu par slug, d'abord dans le
+      // cache de cet import (téléphone créé plus haut dans le même fichier),
+      // sinon en base (import précédent). Si introuvable, on n'échoue pas la
+      // ligne : le téléphone est quand même créé/mis à jour, sans predecessor,
+      // et un avertissement est remonté pour que ce soit corrigé à la main.
+      let predecessorId: string | null = null;
+      const predecessorSlug = row.predecessor_slug?.trim();
+      if (predecessorSlug) {
+        if (predecessorSlug === phoneSlug) {
+          result.warnings.push({
+            line,
+            message: `predecessor_slug identique au slug du téléphone lui-même, ignoré.`
+          });
+        } else {
+          predecessorId = phoneSlugCache.get(predecessorSlug) ?? null;
+          if (!predecessorId) {
+            const { data: existingPredecessor } = await supabase
+              .from("phones")
+              .select("id")
+              .eq("slug", predecessorSlug)
+              .maybeSingle();
+            predecessorId = existingPredecessor?.id ?? null;
+          }
+          if (!predecessorId) {
+            result.warnings.push({
+              line,
+              message: `predecessor_slug "${predecessorSlug}" introuvable (pas encore importé ?) — laissé vide.`
+            });
+          }
+        }
+      }
+
       const payload = {
         brand_id: brandId,
         range_id: rangeId,
-        slug: row.slug.trim(),
+        model_line_id: modelLineId,
+        predecessor_id: predecessorId,
+        slug: phoneSlug,
         name: row.name.trim(),
         release_year: Number(row.release_year),
         release_date: row.release_date?.trim() || null,
@@ -340,10 +412,16 @@ export async function importPhonesFromCSV(formData: FormData): Promise<ImportRes
           .update(payload)
           .eq("id", existingPhone.id);
         if (error) throw new Error(error.message);
+        phoneSlugCache.set(phoneSlug, existingPhone.id);
         result.updated++;
       } else {
-        const { error } = await supabase.from("phones").insert(payload);
+        const { data: createdPhone, error } = await supabase
+          .from("phones")
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw new Error(error.message);
+        phoneSlugCache.set(phoneSlug, createdPhone.id);
         result.created++;
       }
     } catch (err) {
@@ -357,6 +435,7 @@ export async function importPhonesFromCSV(formData: FormData): Promise<ImportRes
   revalidatePath("/admin/telephones");
   revalidatePath("/admin/marques");
   revalidatePath("/admin/gammes");
+  revalidatePath("/admin/lignes");
 
   return result;
 }
