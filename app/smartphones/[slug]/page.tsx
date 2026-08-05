@@ -41,10 +41,10 @@ function IconSpec({
 }) {
   if (value === null || value === undefined || value === "") return null;
   return (
-    <div className="flex flex-col items-center text-center bg-card border border-hairline rounded-xl px-3 py-4 flex-1 min-w-[90px]">
-      <Icon size={18} className="text-signal mb-2" strokeWidth={1.75} />
-      <div className="text-sm font-semibold">{value}</div>
-      <div className="font-mono text-[10px] text-muted mt-0.5">{label}</div>
+    <div className="flex flex-col items-center text-center bg-card border border-hairline rounded-xl px-2 py-3">
+      <Icon size={16} className="text-signal mb-1.5" strokeWidth={1.75} />
+      <div className="text-xs font-semibold truncate w-full">{value}</div>
+      <div className="font-mono text-[9px] text-muted mt-0.5">{label}</div>
     </div>
   );
 }
@@ -359,7 +359,7 @@ export default async function PhoneDetailPage({
               <span className="text-6xl opacity-20">📱</span>
             )}
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="grid grid-cols-4 gap-1.5">
             <IconSpec
               icon={Ruler}
               label="Display"
