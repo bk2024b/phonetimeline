@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createModelLine, deleteModelLine } from "../../actions";
 import type { Brand, ModelLine } from "@/lib/types";
 import Link from "next/link";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 type ModelLineWithBrand = ModelLine & { brands: Pick<Brand, "id" | "name"> };
 
@@ -48,7 +49,9 @@ export default async function ModelLinesPage() {
                   Modifier
                 </Link>
                 <form action={deleteModelLine.bind(null, line.id)} className="inline">
-                  <button className="text-red-600 font-medium">Supprimer</button>
+                  <DeleteButton
+                    confirmText={`Supprimer la ligne « ${line.name} » ? Cette action est irréversible et peut affecter les téléphones qui lui sont rattachés.`}
+                  />
                 </form>
               </td>
             </tr>

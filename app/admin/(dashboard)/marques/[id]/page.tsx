@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { updateBrand, uploadBrandLogo, removeBrandLogo } from "../../../actions";
 import type { Brand } from "@/lib/types";
 import { notFound } from "next/navigation";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 export default async function EditBrandPage({
   params
@@ -87,9 +88,11 @@ export default async function EditBrandPage({
               className="w-16 h-16 object-contain bg-bg rounded border border-line p-2"
             />
             <form action={removeLogoWithId}>
-              <button type="submit" className="text-xs text-red-600 font-medium">
-                Retirer le logo
-              </button>
+              <DeleteButton
+                confirmText="Retirer le logo actuel ?"
+                label="Retirer le logo"
+                className="text-xs text-red-600 font-medium"
+              />
             </form>
           </div>
         )}

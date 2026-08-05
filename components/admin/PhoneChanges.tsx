@@ -1,5 +1,6 @@
 import type { PhoneChange } from "@/lib/types";
 import { createPhoneChange, deletePhoneChange } from "@/app/admin/actions";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 const LABELS: Record<PhoneChange["type"], { label: string; icon: string; color: string }> = {
   added: { label: "Ajouté", icon: "✓", color: "text-jade" },
@@ -38,9 +39,10 @@ export default function PhoneChanges({
                   {change.description}
                 </span>
                 <form action={deletePhoneChange.bind(null, change.id, phoneId)}>
-                  <button className="text-xs text-red-600 font-medium">
-                    Supprimer
-                  </button>
+                  <DeleteButton
+                    confirmText="Supprimer ce changement ?"
+                    className="text-xs text-red-600 font-medium"
+                  />
                 </form>
               </li>
             );

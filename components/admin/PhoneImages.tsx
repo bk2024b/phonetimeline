@@ -1,5 +1,6 @@
 import type { PhoneImage } from "@/lib/types";
 import { uploadPhoneImage, deletePhoneImage } from "@/app/admin/actions";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 export default function PhoneImages({
   phoneId,
@@ -30,12 +31,11 @@ export default function PhoneImages({
                 action={deletePhoneImage.bind(null, img.id, img.url, phoneId)}
                 className="absolute top-1 right-1"
               >
-                <button
-                  type="submit"
+                <DeleteButton
+                  confirmText="Supprimer cette photo ? Cette action est irréversible."
+                  label="Suppr."
                   className="bg-dark/80 text-white text-[10px] rounded px-1.5 py-0.5"
-                >
-                  Suppr.
-                </button>
+                />
               </form>
             </div>
           ))}

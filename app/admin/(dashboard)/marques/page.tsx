@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createBrand, deleteBrand } from "../../actions";
 import type { Brand } from "@/lib/types";
 import Link from "next/link";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 export default async function BrandsPage() {
   const supabase = await createClient();
@@ -39,9 +40,9 @@ export default async function BrandsPage() {
                   Modifier
                 </Link>
                 <form action={deleteBrand.bind(null, brand.id)} className="inline">
-                  <button className="text-red-600 font-medium">
-                    Supprimer
-                  </button>
+                  <DeleteButton
+                    confirmText={`Supprimer « ${brand.name} » ? Cette action est irréversible et peut échouer ou entraîner la perte de ses téléphones, gammes et lignes de modèle associés.`}
+                  />
                 </form>
               </td>
             </tr>

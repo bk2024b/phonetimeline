@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createRange, deleteRange } from "../../actions";
 import type { Brand, Range } from "@/lib/types";
 import Link from "next/link";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 type RangeWithBrand = Range & { brands: Pick<Brand, "id" | "name"> };
 
@@ -45,9 +46,9 @@ export default async function RangesPage() {
                   Modifier
                 </Link>
                 <form action={deleteRange.bind(null, range.id)} className="inline">
-                  <button className="text-red-600 font-medium">
-                    Supprimer
-                  </button>
+                  <DeleteButton
+                    confirmText={`Supprimer la gamme « ${range.name} » ? Cette action est irréversible et peut affecter les téléphones qui lui sont rattachés.`}
+                  />
                 </form>
               </td>
             </tr>

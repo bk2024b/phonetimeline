@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { deletePhone } from "../../actions";
 import type { PhoneWithBrand, Brand } from "@/lib/types";
 import Link from "next/link";
+import DeleteButton from "@/components/admin/DeleteButton";
 
 export default async function PhonesPage({
   searchParams
@@ -95,9 +96,9 @@ export default async function PhonesPage({
                   Modifier
                 </Link>
                 <form action={deletePhone.bind(null, phone.id)} className="inline">
-                  <button className="text-red-600 font-medium">
-                    Supprimer
-                  </button>
+                  <DeleteButton
+                    confirmText={`Supprimer « ${phone.name} » ? Ses photos seront supprimées avec lui. Cette action est irréversible.`}
+                  />
                 </form>
               </td>
             </tr>
