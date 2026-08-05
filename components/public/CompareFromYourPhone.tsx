@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Plus, X } from "lucide-react";
 import type { PhoneLite } from "@/lib/queries/phones";
 
 const METRICS: {
@@ -21,13 +22,48 @@ export default function CompareFromYourPhone({
   current: PhoneLite;
   others: PhoneLite[];
 }) {
+  const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState("");
   const selected = others.find((p) => p.id === selectedId);
 
+  // --- Etat replie : carte "Compare" avec bouton + (design de reference) ---
+  if (!open) {
+    return (
+      <div className="bg-card border border-dashed border-hairline rounded-xl p-5 h-full flex flex-col">
+        <div className="font-mono text-[11px] uppercase tracking-wide text-muted mb-1">
+          Compare
+        </div>
+        <p className="text-sm text-muted mb-4">Comparez ce téléphone au vôtre.</p>
+        <button
+          onClick={() => setOpen(true)}
+          className="mt-auto flex items-center justify-center gap-2 w-full border border-hairline rounded-lg py-3 text-sm text-muted hover:text-white hover:border-signal/40 transition-colors"
+        >
+          <Plus size={16} strokeWidth={1.75} />
+          Ajouter un téléphone
+        </button>
+      </div>
+    );
+  }
+
+  // --- Etat ouvert : selection + delta vs le telephone choisi ---
   return (
-    <section className="bg-card border border-hairline rounded-xl p-5 mb-10">
+    <div className="bg-card border border-hairline rounded-xl p-5 h-full">
+      <div className="flex items-center justify-between mb-2">
+        <div className="font-mono text-[11px] uppercase tracking-wide text-muted">Compare</div>
+        <button
+          onClick={() => {
+            setOpen(false);
+            setSelectedId("");
+          }}
+          className="text-muted hover:text-white transition-colors"
+          title="Fermer"
+        >
+          <X size={14} />
+        </button>
+      </div>
+
       <label className="text-sm font-medium block mb-2">
-        Vous possédez déjà un téléphone ? Comparez-le à celui-ci.
+        Vous possédez déjà un téléphone ?
       </label>
       <select
         value={selectedId}
@@ -64,7 +100,7 @@ export default function CompareFromYourPhone({
               if (delta === 0) return null;
 
               const sign = delta > 0 ? "+" : "";
-              // Pour le poids, une baisse est une amélioration -> on l'affiche en vert aussi.
+              // Pour le poids, une baisse est une amelioration -> on l'affiche en vert aussi.
               const isImprovement = key === "weight_g" ? delta < 0 : delta > 0;
 
               return (
@@ -84,6 +120,6 @@ export default function CompareFromYourPhone({
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }
