@@ -5,16 +5,16 @@ import { useState } from "react";
 export default function PhoneTabs({
   overview,
   specs,
-  gallery
+  design
 }: {
   overview: React.ReactNode;
   specs: React.ReactNode;
-  gallery: React.ReactNode | null;
+  design: React.ReactNode | null;
 }) {
   const tabs = [
-    { key: "overview", label: "Vue d'ensemble", content: overview },
-    { key: "specs", label: "Caractéristiques", content: specs },
-    ...(gallery ? [{ key: "gallery", label: "Galerie", content: gallery }] : [])
+    { key: "overview", label: "Overview", content: overview },
+    { key: "specs", label: "Specifications", content: specs },
+    ...(design ? [{ key: "design", label: "Design", content: design }] : [])
   ];
 
   const [active, setActive] = useState(tabs[0].key);

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { Camera, HardDrive, MemoryStick, Ruler } from "lucide-react";
 import { getPhoneBySlug, getAllPhonesLite, getSimilarPhones } from "@/lib/queries/phones";
 import { getPhonesByModelLineId } from "@/lib/queries/model-lines";
 import CompareFromYourPhone from "@/components/public/CompareFromYourPhone";
@@ -25,6 +26,25 @@ function SpecCard({ title, children }: { title: string; children: React.ReactNod
         {title}
       </div>
       {children}
+    </div>
+  );
+}
+
+function IconSpec({
+  icon: Icon,
+  label,
+  value
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number | null | undefined;
+}) {
+  if (value === null || value === undefined || value === "") return null;
+  return (
+    <div className="flex flex-col items-center text-center bg-card border border-hairline rounded-xl px-3 py-4 flex-1 min-w-[90px]">
+      <Icon size={18} className="text-signal mb-2" strokeWidth={1.75} />
+      <div className="text-sm font-semibold">{value}</div>
+      <div className="font-mono text-[10px] text-muted mt-0.5">{label}</div>
     </div>
   );
 }
@@ -55,8 +75,75 @@ export default async function PhoneDetailPage({
   const removed = (phone.phone_changes ?? []).filter((c) => c.type === "removed");
   const unchanged = (phone.phone_changes ?? []).filter((c) => c.type === "unchanged");
 
+  const releasedPhrase = phone.release_date
+    ? new Date(phone.release_date + "T00:00:00").toLocaleDateString("fr-FR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      })
+    : null;
+
+  // --- Contenu de l'onglet Overview : About / Design / Key specs / Storage ---
   const overviewContent = (
     <div>
+      <div className="grid md:grid-cols-2 gap-4 mb-10">
+        <div className="bg-card border border-hairline rounded-xl p-5">
+          <div className="font-mono text-[11px] uppercase tracking-wide text-muted mb-3">
+            About
+          </div>
+          <p className="text-sm text-muted mb-4">
+            {phone.milestone_note ??
+              `${phone.name} est un modèle ${phone.brands.name}, sorti en ${phone.release_year}.`}
+          </p>
+          <button
+            disabled
+            className="font-mono text-xs border border-hairline text-muted rounded-full px-4 py-2 cursor-not-allowed"
+            title="Bientôt disponible"
+          >
+            Read full story →
+          </button>
+        </div>
+
+        <div className="bg-card border border-hairline rounded-xl p-5 flex items-center justify-center">
+          {cover ? (
+            <Image
+              src={cover.url}
+              alt={cover.alt ?? phone.name}
+              width={220}
+              height={220}
+              className="object-contain max-h-48 w-auto"
+            />
+          ) : (
+            <span className="text-4xl opacity-30">📱</span>
+          )}
+        </div>
+
+        <SpecCard title="Key specs">
+          <SpecPair
+            label="Display"
+            value={phone.screen_size ? `${phone.screen_size}" ${phone.screen_type ?? ""}`.trim() : null}
+          />
+          <SpecPair label="Chipset" value={phone.processor} />
+          <SpecPair label="CPU" value={phone.processor} />
+          <SpecPair label="OS" value={phone.extra_specs?.["os"]} />
+        </SpecCard>
+
+        <SpecCard title="Storage options">
+          {phone.storage_gb ? (
+            <div className="flex items-center justify-between text-sm py-2">
+              <span className="font-medium">{phone.storage_gb} Go</span>
+              {phone.price_launch && (
+                <span className="font-mono text-xs text-muted">
+                  {phone.price_launch} $ au lancement
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted py-2">Non renseigné.</p>
+          )}
+        </SpecCard>
+      </div>
+
       {added.length > 0 && (
         <section className="mb-10">
           <h2 className="font-display font-semibold text-lg mb-4">Nouveautés</h2>
@@ -205,7 +292,7 @@ export default async function PhoneDetailPage({
     </div>
   );
 
-  const galleryContent =
+  const designContent =
     images.length > 0 ? (
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {images.map((img) => (
@@ -253,69 +340,66 @@ export default async function PhoneDetailPage({
         <span className="text-white">{phone.name}</span>
       </nav>
 
-      {/* --- Hero + sidebar --- */}
-      <section className="max-w-5xl mx-auto px-6 pt-8 pb-10 grid md:grid-cols-[1fr_1fr_260px] gap-8 items-start">
-        <div className="bg-card border border-hairline rounded-2xl aspect-square flex items-center justify-center overflow-hidden">
-          {cover ? (
-            <Image
-              src={cover.url}
-              alt={cover.alt ?? phone.name}
-              width={420}
-              height={420}
-              className="object-cover w-full h-full"
+      {/* --- Hero : photo + icones a gauche, carte verte + position au centre/droite --- */}
+      <section className="max-w-5xl mx-auto px-6 pt-8 pb-10 grid md:grid-cols-[1fr_1fr_260px] gap-6 items-start">
+        <div>
+          <div className="bg-card border border-hairline rounded-2xl aspect-square flex items-center justify-center overflow-hidden mb-3">
+            {cover ? (
+              <Image
+                src={cover.url}
+                alt={cover.alt ?? phone.name}
+                width={420}
+                height={420}
+                className="object-cover w-full h-full"
+              />
+            ) : (
+              <span className="text-6xl opacity-20">📱</span>
+            )}
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <IconSpec
+              icon={Ruler}
+              label="Display"
+              value={phone.screen_size ? `${phone.screen_size}"` : null}
             />
-          ) : (
-            <span className="text-6xl opacity-20">📱</span>
-          )}
+            <IconSpec
+              icon={Camera}
+              label="Camera"
+              value={phone.main_camera_mp ? `${phone.main_camera_mp} MP` : null}
+            />
+            <IconSpec
+              icon={HardDrive}
+              label="Storage"
+              value={phone.storage_gb ? `${phone.storage_gb} Go` : null}
+            />
+            <IconSpec
+              icon={MemoryStick}
+              label="RAM"
+              value={phone.ram_gb ? `${phone.ram_gb} Go` : null}
+            />
+          </div>
         </div>
 
-        <div>
-          <div className="font-mono text-xs text-signal uppercase tracking-wide mb-2">
+        <div className="bg-signal/5 border-2 border-signal/40 rounded-2xl p-6">
+          <span className="inline-block font-mono text-xs border border-signal text-signal rounded-full px-3 py-1 mb-4">
+            {phone.release_year}
+          </span>
+          <div className="font-mono text-xs text-muted uppercase tracking-wide mb-1">
             {phone.brands.name}
             {phone.ranges ? ` · ${phone.ranges.name}` : ""}
           </div>
-          <h1 className="font-display font-bold text-3xl md:text-4xl mb-4">{phone.name}</h1>
-
-          {phone.milestone_note && <p className="text-muted mb-5">{phone.milestone_note}</p>}
-
-          <div className="flex flex-wrap gap-2 mb-6">
-            <span className="font-mono text-xs border border-hairline rounded-full px-3 py-1 text-muted">
-              {phone.release_date ?? phone.release_year}
+          <h1 className="font-display font-bold text-2xl md:text-3xl mb-3">{phone.name}</h1>
+          {phone.milestone_note && (
+            <p className="text-muted text-sm mb-4">{phone.milestone_note}</p>
+          )}
+          {releasedPhrase && (
+            <p className="font-mono text-xs text-muted mb-1">Released {releasedPhrase}</p>
+          )}
+          {phone.is_milestone && (
+            <span className="inline-block mt-2 font-mono text-xs bg-signal/10 text-signal rounded-full px-3 py-1">
+              ★ Modèle marquant
             </span>
-            {phone.is_milestone && (
-              <span className="font-mono text-xs bg-signal/10 text-signal rounded-full px-3 py-1">
-                ★ Modèle marquant
-              </span>
-            )}
-            {phone.price_launch && (
-              <span className="font-mono text-xs border border-hairline rounded-full px-3 py-1 text-muted">
-                {phone.price_launch} $ au lancement
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {phone.screen_size && (
-              <span className="font-mono text-xs bg-card border border-hairline px-2.5 py-1.5 rounded-lg">
-                {phone.screen_size}&quot;
-              </span>
-            )}
-            {phone.main_camera_mp && (
-              <span className="font-mono text-xs bg-card border border-hairline px-2.5 py-1.5 rounded-lg">
-                {phone.main_camera_mp} MP
-              </span>
-            )}
-            {phone.storage_gb && (
-              <span className="font-mono text-xs bg-card border border-hairline px-2.5 py-1.5 rounded-lg">
-                {phone.storage_gb} Go
-              </span>
-            )}
-            {phone.ram_gb && (
-              <span className="font-mono text-xs bg-card border border-hairline px-2.5 py-1.5 rounded-lg">
-                {phone.ram_gb} Go RAM
-              </span>
-            )}
-          </div>
+          )}
         </div>
 
         {(phone.predecessor || phone.successor) && (
@@ -367,7 +451,7 @@ export default async function PhoneDetailPage({
       </section>
 
       <main className="max-w-5xl mx-auto px-6 pb-16">
-        <PhoneTabs overview={overviewContent} specs={specsContent} gallery={galleryContent} />
+        <PhoneTabs overview={overviewContent} specs={specsContent} design={designContent} />
 
         {similarPhones.length > 0 && (
           <section className="mt-14 pt-10 border-t border-hairline">
