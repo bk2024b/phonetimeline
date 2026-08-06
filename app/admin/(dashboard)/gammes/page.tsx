@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createRange, deleteRange } from "../../actions";
 import type { Brand, Range } from "@/lib/types";
 import Link from "next/link";
-import DeleteButton from "@/components/admin/DeleteButton";
 
 type RangeWithBrand = Range & { brands: Pick<Brand, "id" | "name"> };
 
@@ -46,9 +45,9 @@ export default async function RangesPage() {
                   Modifier
                 </Link>
                 <form action={deleteRange.bind(null, range.id)} className="inline">
-                  <DeleteButton
-                    confirmText={`Supprimer la gamme « ${range.name} » ? Cette action est irréversible et peut affecter les téléphones qui lui sont rattachés.`}
-                  />
+                  <button className="text-red-600 font-medium">
+                    Supprimer
+                  </button>
                 </form>
               </td>
             </tr>
@@ -103,6 +102,17 @@ export default async function RangesPage() {
               name="slug"
               required
               placeholder="galaxy-s"
+              className="w-full border border-line rounded px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium block mb-1">
+              Description courte (affichée sur la page marque)
+            </label>
+            <textarea
+              name="description"
+              rows={2}
+              placeholder="Introduite en septembre 2021, cette génération apporte..."
               className="w-full border border-line rounded px-3 py-2 text-sm"
             />
           </div>

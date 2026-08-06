@@ -66,6 +66,17 @@ export default async function EditRangePage({
             className="w-full border border-line rounded px-3 py-2 text-sm"
           />
         </div>
+        <div>
+          <label className="text-sm font-medium block mb-1">
+            Description courte (affichée sur la page marque)
+          </label>
+          <textarea
+            name="description"
+            rows={2}
+            defaultValue={range.description ?? ""}
+            className="w-full border border-line rounded px-3 py-2 text-sm"
+          />
+        </div>
         <button
           type="submit"
           className="bg-jade text-white text-sm font-medium px-4 py-2 rounded"
