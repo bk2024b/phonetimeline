@@ -351,6 +351,38 @@ export default function PhoneForm({
         </div>
       </section>
 
+      <section className="bg-surface border border-line rounded p-6 space-y-3">
+        <h2 className="font-semibold text-sm uppercase tracking-wide text-inksoft">
+          Fiabilité des données
+        </h2>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm font-medium block mb-1">Statut</label>
+            <select
+              name="data_status"
+              defaultValue={phone?.data_status ?? "unverified"}
+              className="w-full border border-line rounded px-3 py-2 text-sm bg-white"
+            >
+              <option value="unverified">○ Non vérifié</option>
+              <option value="needs_review">⚠ À vérifier</option>
+              <option value="verified">✓ Vérifié</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-medium block mb-1">
+              Sources (optionnel, une URL par ligne)
+            </label>
+            <textarea
+              name="sources"
+              rows={2}
+              defaultValue={phone?.sources?.join("\n") ?? ""}
+              placeholder={"https://apple.com/newsroom/...\nhttps://gsmarena.com/..."}
+              className="w-full border border-line rounded px-3 py-2 text-sm font-mono text-xs"
+            />
+          </div>
+        </div>
+      </section>
+
       <button
         type="submit"
         className="bg-jade text-white text-sm font-medium px-5 py-2.5 rounded"

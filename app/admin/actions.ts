@@ -460,6 +460,15 @@ function scoresPayload(formData: FormData) {
   return scores;
 }
 
+function sourcesPayload(formData: FormData) {
+  const raw = String(formData.get("sources") || "");
+  const lines = raw
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  return lines.length > 0 ? lines : null;
+}
+
 function phonePayload(formData: FormData) {
   const predecessorId = String(formData.get("predecessor_id") || "") || null;
   const id = String(formData.get("id") || "") || null;
@@ -486,7 +495,9 @@ function phonePayload(formData: FormData) {
     battery_mah: numOrNull(formData, "battery_mah"),
     main_camera_mp: numOrNull(formData, "main_camera_mp"),
     weight_g: numOrNull(formData, "weight_g"),
-    price_launch: numOrNull(formData, "price_launch")
+    price_launch: numOrNull(formData, "price_launch"),
+    data_status: String(formData.get("data_status") || "unverified"),
+    sources: sourcesPayload(formData)
   };
 }
 

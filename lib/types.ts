@@ -35,6 +35,8 @@ export type PhoneScoreCategory =
 
 export type PhoneScores = Partial<Record<PhoneScoreCategory, number>>;
 
+export type PhoneDataStatus = "verified" | "needs_review" | "unverified";
+
 export type Phone = {
   id: string;
   brand_id: string;
@@ -59,6 +61,8 @@ export type Phone = {
   price_launch: number | null;
   scores: PhoneScores;
   extra_specs: Record<string, string>;
+  data_status: PhoneDataStatus;
+  sources: string[] | null;
   created_at: string;
 };
 
