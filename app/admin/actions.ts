@@ -133,7 +133,8 @@ export async function createRange(formData: FormData) {
   const { error } = await supabase.from("ranges").insert({
     brand_id: String(formData.get("brand_id")),
     slug: String(formData.get("slug")),
-    name: String(formData.get("name"))
+    name: String(formData.get("name")),
+    description: String(formData.get("description") || "") || null
   });
 
   if (error) throw new Error(error.message);
@@ -150,7 +151,8 @@ export async function updateRange(id: string, formData: FormData) {
     .update({
       brand_id: String(formData.get("brand_id")),
       slug: String(formData.get("slug")),
-      name: String(formData.get("name"))
+      name: String(formData.get("name")),
+      description: String(formData.get("description") || "") || null
     })
     .eq("id", id);
 

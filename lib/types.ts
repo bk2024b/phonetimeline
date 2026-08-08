@@ -12,6 +12,7 @@ export type Range = {
   brand_id: string;
   slug: string;
   name: string;
+  description: string | null;
   created_at: string;
 };
 
