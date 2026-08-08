@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site";
 
 const interTight = Inter_Tight({
   subsets: ["latin"],
@@ -21,8 +22,20 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PhoneTimeline",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "PhoneTimeline — L'historique complet des smartphones",
+    template: "%s — PhoneTimeline"
+  },
   description: "L'historique complet des smartphones, marque par marque.",
+  openGraph: {
+    siteName: "PhoneTimeline",
+    type: "website",
+    locale: "fr_FR"
+  },
+  twitter: {
+    card: "summary_large_image"
+  },
   icons: {
     icon: [
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
