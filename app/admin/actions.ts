@@ -490,6 +490,18 @@ function phonePayload(formData: FormData) {
   };
 }
 
+export async function createPhone(formData: FormData) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("phones")
+    .insert(phonePayload(formData))
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/telephones");
+  redirect(`/admin/telephones/${data.id}?created=1`);
+}
+
 export async function updatePhone(id: string, formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase
@@ -498,7 +510,8 @@ export async function updatePhone(id: string, formData: FormData) {
     .eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/admin/telephones");
-  redirect("/admin/telephones");
+  revalidatePath(`/admin/telephones/${id}`);
+  redirect(`/admin/telephones/${id}?saved=1`);
 }
 
 export async function deletePhone(id: string) {

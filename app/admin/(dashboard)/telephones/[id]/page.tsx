@@ -15,11 +15,14 @@ import type {
 import { notFound } from "next/navigation";
 
 export default async function EditPhonePage({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string; created?: string }>;
 }) {
   const { id } = await params;
+  const { saved, created } = await searchParams;
   const supabase = await createClient();
 
   const [
@@ -42,7 +45,7 @@ export default async function EditPhonePage({
     }>,
     supabase
       .from("phones")
-      .select("id, name, slug, release_year")
+      .select("id, name, slug, release_year, brand_id")
       .order("release_year") as unknown as Promise<{ data: PhoneRef[] | null }>,
     supabase.from("phones").select("*").eq("id", id).single() as unknown as Promise<{
       data: Phone | null;
@@ -66,6 +69,17 @@ export default async function EditPhonePage({
   return (
     <main className="p-8 space-y-8">
       <h1 className="text-2xl font-bold">Modifier {phone.name}</h1>
+      {saved === "1" && (
+        <p className="text-sm bg-jade/10 text-jade border border-jade/30 rounded px-4 py-2.5 max-w-2xl">
+          ✓ Modifications enregistrées.
+        </p>
+      )}
+      {created === "1" && (
+        <p className="text-sm bg-jade/10 text-jade border border-jade/30 rounded px-4 py-2.5 max-w-2xl">
+          ✓ Téléphone créé. Tu peux maintenant ajouter des photos et des
+          changements ci-dessous.
+        </p>
+      )}
       <PhoneForm
         brands={brands ?? []}
         ranges={ranges ?? []}

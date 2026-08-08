@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { Brand, ModelLine, Phone, PhoneRef, Range } from "@/lib/types";
 
 export default function PhoneForm({
@@ -15,9 +18,32 @@ export default function PhoneForm({
   phone?: Phone;
   action: (formData: FormData) => void;
 }) {
+  const [brandId, setBrandId] = useState(phone?.brand_id ?? "");
+  const [rangeId, setRangeId] = useState(phone?.range_id ?? "");
+  const [modelLineId, setModelLineId] = useState(phone?.model_line_id ?? "");
+  const [predecessorId, setPredecessorId] = useState(phone?.predecessor_id ?? "");
+
+  function handleBrandChange(newBrandId: string) {
+    setBrandId(newBrandId);
+    // Si on revient a la marque d'origine, on restaure les valeurs d'origine
+    // plutot que de les vider (utile en cas de clic accidentel).
+    if (newBrandId === (phone?.brand_id ?? "")) {
+      setRangeId(phone?.range_id ?? "");
+      setModelLineId(phone?.model_line_id ?? "");
+      setPredecessorId(phone?.predecessor_id ?? "");
+    } else {
+      setRangeId("");
+      setModelLineId("");
+      setPredecessorId("");
+    }
+  }
+
+  const filteredRanges = ranges.filter((r) => r.brand_id === brandId);
+  const filteredModelLines = modelLines.filter((l) => l.brand_id === brandId);
   const candidates = allPhones
-    .filter((p) => p.id !== phone?.id)
+    .filter((p) => p.id !== phone?.id && p.brand_id === brandId)
     .sort((a, b) => a.release_year - b.release_year);
+
   return (
     <form action={action} className="space-y-8 max-w-2xl">
       {phone?.id && <input type="hidden" name="id" value={phone.id} />}
@@ -32,7 +58,8 @@ export default function PhoneForm({
             <select
               name="brand_id"
               required
-              defaultValue={phone?.brand_id}
+              value={brandId}
+              onChange={(e) => handleBrandChange(e.target.value)}
               className="w-full border border-line rounded px-3 py-2 text-sm bg-white"
             >
               <option value="" disabled>
@@ -51,18 +78,19 @@ export default function PhoneForm({
             </label>
             <select
               name="range_id"
-              defaultValue={phone?.range_id ?? ""}
-              className="w-full border border-line rounded px-3 py-2 text-sm bg-white"
+              value={rangeId}
+              onChange={(e) => setRangeId(e.target.value)}
+              disabled={!brandId}
+              className="w-full border border-line rounded px-3 py-2 text-sm bg-white disabled:bg-bg disabled:text-inksoft"
             >
-              <option value="">Aucune</option>
-              {ranges.map((r) => {
-                const brandName = brands.find((b) => b.id === r.brand_id)?.name;
-                return (
-                  <option key={r.id} value={r.id}>
-                    {brandName ? `${brandName} — ${r.name}` : r.name}
-                  </option>
-                );
-              })}
+              <option value="">
+                {brandId ? "Aucune" : "Choisis d'abord une marque"}
+              </option>
+              {filteredRanges.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -71,18 +99,19 @@ export default function PhoneForm({
             </label>
             <select
               name="model_line_id"
-              defaultValue={phone?.model_line_id ?? ""}
-              className="w-full border border-line rounded px-3 py-2 text-sm bg-white"
+              value={modelLineId}
+              onChange={(e) => setModelLineId(e.target.value)}
+              disabled={!brandId}
+              className="w-full border border-line rounded px-3 py-2 text-sm bg-white disabled:bg-bg disabled:text-inksoft"
             >
-              <option value="">Aucune</option>
-              {modelLines.map((l) => {
-                const brandName = brands.find((b) => b.id === l.brand_id)?.name;
-                return (
-                  <option key={l.id} value={l.id}>
-                    {brandName ? `${brandName} — ${l.name}` : l.name}
-                  </option>
-                );
-              })}
+              <option value="">
+                {brandId ? "Aucune" : "Choisis d'abord une marque"}
+              </option>
+              {filteredModelLines.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -91,10 +120,14 @@ export default function PhoneForm({
             </label>
             <select
               name="predecessor_id"
-              defaultValue={phone?.predecessor_id ?? ""}
-              className="w-full border border-line rounded px-3 py-2 text-sm bg-white"
+              value={predecessorId}
+              onChange={(e) => setPredecessorId(e.target.value)}
+              disabled={!brandId}
+              className="w-full border border-line rounded px-3 py-2 text-sm bg-white disabled:bg-bg disabled:text-inksoft"
             >
-              <option value="">Aucun (premier de sa lignée)</option>
+              <option value="">
+                {brandId ? "Aucun (premier de sa lignée)" : "Choisis d'abord une marque"}
+              </option>
               {candidates.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name} ({p.release_year})
