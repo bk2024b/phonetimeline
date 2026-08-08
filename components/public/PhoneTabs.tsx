@@ -21,12 +21,12 @@ export default function PhoneTabs({
 
   return (
     <div>
-      <div className="flex gap-1 border-b border-hairline mb-8">
+      <div className="flex gap-1 border-b border-hairline mb-8 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActive(tab.key)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${
               active === tab.key
                 ? "border-signal text-white"
                 : "border-transparent text-muted hover:text-white"

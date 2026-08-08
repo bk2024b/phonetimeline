@@ -71,7 +71,7 @@ export default function PhoneDNA({
         {rows.map((row) => (
           <div
             key={row.key}
-            className="grid grid-cols-[160px_1fr] text-sm border-t border-hairline first:border-t-0"
+            className="grid grid-cols-[100px_1fr] sm:grid-cols-[160px_1fr] text-sm border-t border-hairline first:border-t-0"
           >
             <div className="px-4 py-3 font-mono text-xs text-muted">{row.label}</div>
             <div className="px-4 py-3 border-l border-hairline flex flex-wrap items-center gap-3">

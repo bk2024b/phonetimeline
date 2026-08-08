@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Camera, HardDrive, MemoryStick, Ruler, ArrowLeftRight, Heart } from "lucide-react";
+import { Camera, HardDrive, MemoryStick, Ruler } from "lucide-react";
 import { getPhoneBySlug, getAllPhonesLite, getSimilarPhones } from "@/lib/queries/phones";
 import { getPhonesByModelLineId } from "@/lib/queries/model-lines";
 import CompareFromYourPhone from "@/components/public/CompareFromYourPhone";
@@ -41,10 +41,10 @@ function IconSpec({
 }) {
   if (value === null || value === undefined || value === "") return null;
   return (
-    <div className="flex flex-col items-center text-center px-2 py-3">
-      <Icon size={16} className="text-signal mb-1.5" strokeWidth={1.75} />
-      <div className="text-xs font-semibold truncate w-full">{value}</div>
-      <div className="font-mono text-[9px] text-muted mt-0.5">{label}</div>
+    <div className="flex flex-col items-center text-center bg-card border border-hairline rounded-xl px-3 py-4 flex-1 min-w-[90px]">
+      <Icon size={18} className="text-signal mb-2" strokeWidth={1.75} />
+      <div className="text-sm font-semibold">{value}</div>
+      <div className="font-mono text-[10px] text-muted mt-0.5">{label}</div>
     </div>
   );
 }
@@ -86,7 +86,7 @@ export default async function PhoneDetailPage({
   // --- Contenu de l'onglet Overview : About / Design / Key specs / Storage ---
   const overviewContent = (
     <div>
-      <div className="grid md:grid-cols-3 gap-4 mb-10">
+      <div className="grid md:grid-cols-2 gap-4 mb-10">
         <div className="bg-card border border-hairline rounded-xl p-5">
           <div className="font-mono text-[11px] uppercase tracking-wide text-muted mb-3">
             About
@@ -102,6 +102,20 @@ export default async function PhoneDetailPage({
           >
             Read full story →
           </button>
+        </div>
+
+        <div className="bg-card border border-hairline rounded-xl p-5 flex items-center justify-center">
+          {cover ? (
+            <Image
+              src={cover.url}
+              alt={cover.alt ?? phone.name}
+              width={220}
+              height={220}
+              className="object-contain max-h-48 w-auto"
+            />
+          ) : (
+            <span className="text-4xl opacity-30">📱</span>
+          )}
         </div>
 
         <SpecCard title="Key specs">
@@ -152,7 +166,7 @@ export default async function PhoneDetailPage({
           <h2 className="font-display font-semibold text-lg mb-4">
             Ce qui change depuis {phone.predecessor?.name ?? "le modèle précédent"}
           </h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <div className="font-mono text-xs text-signal uppercase mb-2">✓ Ajouté</div>
               <ul className="space-y-1.5">
@@ -227,6 +241,7 @@ export default async function PhoneDetailPage({
       )}
 
       <PhoneDNA phone={phoneForDNA} linePhones={linePhones} />
+      <CompareFromYourPhone current={phone} others={otherPhones} />
     </div>
   );
 
@@ -304,30 +319,12 @@ export default async function PhoneDetailPage({
           <Link href="/">
             <Logo light />
           </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/marques/${phone.brands.slug}`}
-              className="hidden md:inline-block text-sm text-muted hover:text-white transition-colors"
-            >
-              ← Tous les {phone.brands.name}
-            </Link>
-            <button
-              disabled
-              title="Bientôt disponible"
-              className="flex items-center gap-1.5 font-mono text-xs border border-hairline text-muted rounded-full px-3 py-1.5 cursor-not-allowed"
-            >
-              <ArrowLeftRight size={13} strokeWidth={1.75} />
-              Compare
-            </button>
-            <button
-              disabled
-              title="Bientôt disponible"
-              className="flex items-center gap-1.5 font-mono text-xs border border-hairline text-muted rounded-full px-3 py-1.5 cursor-not-allowed"
-            >
-              <Heart size={13} strokeWidth={1.75} />
-              Add to favorites
-            </button>
-          </div>
+          <Link
+            href={`/marques/${phone.brands.slug}`}
+            className="text-sm text-muted hover:text-white transition-colors"
+          >
+            ← Tous les {phone.brands.name}
+          </Link>
         </div>
       </header>
 
@@ -359,7 +356,7 @@ export default async function PhoneDetailPage({
               <span className="text-6xl opacity-20">📱</span>
             )}
           </div>
-          <div className="grid grid-cols-4 bg-card border border-hairline rounded-xl divide-x divide-hairline overflow-hidden">
+          <div className="flex gap-2 flex-wrap">
             <IconSpec
               icon={Ruler}
               label="Display"
@@ -407,74 +404,47 @@ export default async function PhoneDetailPage({
 
         {(phone.predecessor || phone.successor) && (
           <div className="bg-card border border-hairline rounded-xl p-4">
-            <div className="font-mono text-[11px] uppercase text-muted mb-4">
+            <div className="font-mono text-[11px] uppercase text-muted mb-3">
               Position dans la lignée
             </div>
-            <div className="relative">
-              {/* Ligne verticale continue reliant les 3 étapes */}
-              <div className="absolute left-2.5 top-2 bottom-2 w-px bg-hairline" />
+            <div className="space-y-3">
+              {phone.predecessor ? (
+                <Link
+                  href={`/smartphones/${phone.predecessor.slug}`}
+                  className="block hover:opacity-70 transition-opacity"
+                >
+                  <div className="text-[10px] font-mono text-muted">Précédent</div>
+                  <div className="text-sm">{phone.predecessor.name}</div>
+                  <div className="text-[10px] font-mono text-muted">
+                    {phone.predecessor.release_year}
+                  </div>
+                </Link>
+              ) : (
+                <div className="text-[10px] font-mono text-muted">Premier de sa lignée</div>
+              )}
 
-              <div className="space-y-4">
-                {/* Précédent */}
-                <div className="flex gap-3">
-                  <div className="relative z-10 w-5 flex-shrink-0 flex justify-center pt-0.5">
-                    <span className="w-[9px] h-[9px] rounded-full bg-night border-2 border-hairline" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    {phone.predecessor ? (
-                      <Link
-                        href={`/smartphones/${phone.predecessor.slug}`}
-                        className="block hover:opacity-70 transition-opacity"
-                      >
-                        <div className="text-[10px] font-mono text-muted">Previous</div>
-                        <div className="text-sm truncate">{phone.predecessor.name}</div>
-                        <div className="text-[10px] font-mono text-muted">
-                          {phone.predecessor.release_year}
-                        </div>
-                      </Link>
-                    ) : (
-                      <div className="text-[10px] font-mono text-muted">Premier de sa lignée</div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Actuel — point vert lumineux */}
-                <div className="flex gap-3">
-                  <div className="relative z-10 w-5 flex-shrink-0 flex justify-center pt-0.5">
-                    <span className="w-[9px] h-[9px] rounded-full bg-signal shadow-[0_0_0_4px_rgba(0,210,106,0.18),0_0_10px_2px_rgba(0,210,106,0.75)]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[10px] font-mono text-signal">Current</div>
-                    <div className="text-sm font-semibold truncate">{phone.name}</div>
-                    <div className="text-[10px] font-mono text-muted">{phone.release_year}</div>
-                  </div>
-                </div>
-
-                {/* Suivant */}
-                <div className="flex gap-3">
-                  <div className="relative z-10 w-5 flex-shrink-0 flex justify-center pt-0.5">
-                    <span className="w-[9px] h-[9px] rounded-full bg-night border-2 border-hairline" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    {phone.successor ? (
-                      <Link
-                        href={`/smartphones/${phone.successor.slug}`}
-                        className="block hover:opacity-70 transition-opacity"
-                      >
-                        <div className="text-[10px] font-mono text-muted">Next</div>
-                        <div className="text-sm truncate">{phone.successor.name}</div>
-                        <div className="text-[10px] font-mono text-muted">
-                          {phone.successor.release_year}
-                        </div>
-                      </Link>
-                    ) : (
-                      <div className="text-[10px] font-mono text-muted">
-                        Dernier de sa lignée (pour l&apos;instant)
-                      </div>
-                    )}
-                  </div>
-                </div>
+              <div className="border-l-2 border-signal pl-3 py-1">
+                <div className="text-[10px] font-mono text-signal">Actuel</div>
+                <div className="text-sm font-semibold">{phone.name}</div>
+                <div className="text-[10px] font-mono text-muted">{phone.release_year}</div>
               </div>
+
+              {phone.successor ? (
+                <Link
+                  href={`/smartphones/${phone.successor.slug}`}
+                  className="block hover:opacity-70 transition-opacity"
+                >
+                  <div className="text-[10px] font-mono text-muted">Suivant</div>
+                  <div className="text-sm">{phone.successor.name}</div>
+                  <div className="text-[10px] font-mono text-muted">
+                    {phone.successor.release_year}
+                  </div>
+                </Link>
+              ) : (
+                <div className="text-[10px] font-mono text-muted">
+                  Dernier de sa lignée (pour l&apos;instant)
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -483,56 +453,41 @@ export default async function PhoneDetailPage({
       <main className="max-w-5xl mx-auto px-6 pb-16">
         <PhoneTabs overview={overviewContent} specs={specsContent} design={designContent} />
 
-        <section className="mt-14 pt-10 border-t border-hairline">
-          <h2 className="font-display font-semibold text-lg mb-4">Explore more</h2>
-          <div
-            className={`grid gap-6 ${
-              similarPhones.length > 0 ? "md:grid-cols-[2fr_1fr]" : "md:grid-cols-1 max-w-sm"
-            }`}
-          >
-            {similarPhones.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="font-mono text-[11px] uppercase tracking-wide text-muted">
-                    Modèles similaires
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {similarPhones.map((p) => {
-                    const c = p.phone_images?.[0];
-                    return (
-                      <Link
-                        key={p.id}
-                        href={`/smartphones/${p.slug}`}
-                        className="bg-card border border-hairline rounded-xl overflow-hidden hover:border-signal/40 transition-colors"
-                      >
-                        <div className="aspect-square bg-panel flex items-center justify-center">
-                          {c ? (
-                            <Image
-                              src={c.url}
-                              alt={c.alt ?? p.name}
-                              width={150}
-                              height={150}
-                              className="object-cover w-full h-full"
-                            />
-                          ) : (
-                            <span className="text-3xl opacity-30">📱</span>
-                          )}
-                        </div>
-                        <div className="p-3">
-                          <div className="text-sm font-medium truncate">{p.name}</div>
-                          <div className="font-mono text-xs text-muted">{p.release_year}</div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <CompareFromYourPhone current={phone} others={otherPhones} />
-          </div>
-        </section>
+        {similarPhones.length > 0 && (
+          <section className="mt-14 pt-10 border-t border-hairline">
+            <h2 className="font-display font-semibold text-lg mb-4">Modèles similaires</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {similarPhones.map((p) => {
+                const c = p.phone_images?.[0];
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/smartphones/${p.slug}`}
+                    className="bg-card border border-hairline rounded-xl overflow-hidden hover:border-signal/40 transition-colors"
+                  >
+                    <div className="aspect-square bg-panel flex items-center justify-center">
+                      {c ? (
+                        <Image
+                          src={c.url}
+                          alt={c.alt ?? p.name}
+                          width={150}
+                          height={150}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <span className="text-3xl opacity-30">📱</span>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <div className="text-sm font-medium truncate">{p.name}</div>
+                      <div className="font-mono text-xs text-muted">{p.release_year}</div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </main>
 
       <footer className="border-t border-hairline py-8">

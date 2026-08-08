@@ -11,7 +11,9 @@ export default function Logo({ light = false }: { light?: boolean }) {
         className="rounded-[6px]"
         priority
       />
-      <span className={light ? "text-white" : ""}>PhoneTimeline</span>
+      <span className={`hidden sm:inline ${light ? "text-white" : ""}`}>
+        PhoneTimeline
+      </span>
     </span>
   );
 }

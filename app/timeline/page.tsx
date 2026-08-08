@@ -13,7 +13,7 @@ export default async function TimelinePage() {
           <Link href="/">
             <Logo light />
           </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm text-muted">
+          <nav className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm text-muted">
             <Link href="/marques" className="hover:text-white transition-colors">
               Marques
             </Link>
