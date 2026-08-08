@@ -4,6 +4,9 @@ export type Brand = {
   name: string;
   founded_year: number | null;
   logo_url: string | null;
+  cover_image_url: string | null;
+  description: string | null;
+  estimated_sales: string | null;
   created_at: string;
 };
 
@@ -12,6 +15,7 @@ export type Range = {
   brand_id: string;
   slug: string;
   name: string;
+  description: string | null;
   created_at: string;
 };
 
